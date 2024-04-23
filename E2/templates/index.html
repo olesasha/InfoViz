@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>InfoVis UE 2024</title>
+
+    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='styles/style.css')}}">
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+
+</head>
+<body>
+
+<div class ='title_div'>
+<h1>InfoVis UE 2024 - Exercise 2</h1>
+<p>Enter your name and Matrikelnummer</p>
+</div>
+
+<div id="main_container" class="main_container">
+    <div class="container">
+    <svg id="svg_table"></svg>
+        <p>&nbsp;</p>
+        <label>Indicator:</label>
+        <select id="indicator_change" class="dropdown" onchange="changeIndicator(this)"></select>
+    </div>
+    <div class="container">
+        <p>&nbsp;</p>
+        <svg id="svg_chart"></svg>
+    </div>
+
+
+
+
+<script>
+    let data = {{ data | safe }};
+    console.log(data);
+</script>
+
+<div id="svg_line_plot" class="svg_line_plot"></div>
+
+</body>
+</html>
