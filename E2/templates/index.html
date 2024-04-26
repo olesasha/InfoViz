@@ -39,9 +39,12 @@
 
 
         <script>
-            let data = JSON.parse({{ data_team_pca | safe }});
-            
-            console.log(data["x"]);
+            let data_team_pca = JSON.parse({{ data_team_pca | safe }});
+            let data_agg_team=JSON.parse({{data_agg_team| safe }})
+            let data_agg_player=JSON.parse({{data_agg_player| safe }})
+            let data_player_stats=JSON.parse({{data_player_stats| safe }})
+            console.log(data_agg_team);
+
         </script>
 
         <div id="svg_line_plot" class="svg_line_plot"></div>
