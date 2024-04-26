@@ -39,8 +39,9 @@
 
 
         <script>
-            let data = {{ data | safe }};
-            console.log(data);
+            let data = JSON.parse({{ data_team_pca | safe }});
+            
+            console.log(data["x"]);
         </script>
 
         <div id="svg_line_plot" class="svg_line_plot"></div>
