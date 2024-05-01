@@ -1,54 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>InfoVis UE 2024</title>
-
-    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='styles/style.css')}}">
-
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-
+    <meta charset="utf-8">
+    <style> /* set the CSS */
+        body { font: 12px Arial;}
+        path {
+          stroke-width: 2;
+          fill: none;
+        }
+        .axis path, .axis line {
+          fill: none;
+          stroke: grey;
+          stroke-width: 1;
+          shape-rendering: crispEdges;
+        }
+        .area {
+          fill: #F0F8FF;
+          stroke-width: 0;
+        }
+      </style>
 
 </head>
-
 <body>
+    <div id="graphDiv"></div>
+    
+     <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+        // Our Custom D3 JavaScript here!
+        var graphData = {{ data.chart_data | safe }}
+        var margin = {top: 30, right: 50, bottom: 30, left: 50};
+        var svgWidth = 600;
+        var svgHeight = 270;
+        var graphWidth = svgWidth - margin.left - margin.right;
+        var graphHeight = svgHeight - margin.top - margin.bottom;
 
-    <div class='title_div'>
-        <h1>InfoVis UE 2024 - Exercise 2</h1>
-        <p>Oleksandra Kravchenko (11935050), Maximilian Laurent Heß (12347554)</p>
-    </div>
+        var svg = d3.select("#graphDiv")
+        .append("svg")
+        .attr("width", svgWidth)
+        .attr("height", svgHeight)
+        .append("g")
+        .attr("transform", 
+        "translate(" + margin.left + "," + margin.top + ")");
 
-    <div id="main_container" class="main_container">
-        <div class="container">
-            <svg id="svg_table"></svg>
-            <p>&nbsp;</p>
-            <label>Indicator:</label>
-            <select id="indicator_change" class="dropdown" onchange="changeIndicator(this)"></select>
-        </div>
-        <div class="container">
-            <p>&nbsp;</p>
-            <svg width="200" height="100" id="svg"></svg>
-        </div>
+        function drawGraph(data) {
 
-        
-        
-        <div id="chart">Hello</div>
+            var myGroups = ["Los Angeles Lakers", "Memphis Grizzlies"]
+            var myVars = ["3pt", "Free Throws"]
 
+            // Add the X Axis
+            var x = d3.scaleBand()
+                .range([ 0, width ])
+                .domain(myGroups)
+                .padding(0.01);
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + graphHeight + ")")
+                .call(xAxis);
+            // Add the Y Axis
+            var y = d3.scaleBand()
+                .range([ height, 0 ])
+                .domain(myVars)
+                .padding(0.01);
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis);
 
+            // Build color scale
+            var myColor = d3.scaleLinear()
+                .range(["white", "#69b3a2"])
+                .domain([1,100])
 
+            svg.selectAll()
+                .data(data, function(d) {return d.3pt+':'+d.variable;})
+                .enter()
+                .append("rect")
+                .attr("x", function(d) { return x(d.group) })
+                .attr("y", function(d) { return y(d.variable) })
+                .attr("width", x.bandwidth() )
+                .attr("height", y.bandwidth() )
+                .style("fill", function(d) { return myColor(d.value)} )
+        };
 
-        <script>
-            let data_team_pca = JSON.parse({{ data_team_pca | safe }});
-            let data_agg_team=JSON.parse({{data_agg_team| safe }})
-            let data_agg_player=JSON.parse({{data_agg_player| safe }})
-            let data_player_stats=JSON.parse({{data_player_stats| safe }})
-            console.log(data_agg_team);
+        drawGraph(graphData);
 
-        </script>
-
-        <div id="svg_line_plot" class="svg_line_plot"></div>
-
+          
+    </script>
 </body>
-
 </html>
