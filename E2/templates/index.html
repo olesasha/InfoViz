@@ -30,9 +30,9 @@
     var graphData = {{ data.chart_data | safe }}
     // set the dimensions and margins of the graph
  // set the dimensions and margins of the graph
-    var margin = {top: 60, right: 60, bottom: 60, left: 120},
-    width = 600 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    var margin = {top: 60, right: 60, bottom: 100, left: 120},
+    width = 800 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
     var svg = d3.select("#my_dataviz")
@@ -70,6 +70,9 @@
     svg.append("g")
     .attr("transform", "translate(0," + height + ")")
     .call(d3.axisBottom(x))
+    .selectAll("text")
+    .attr("transform", "translate(-10,0)rotate(-45)")
+    .style("text-anchor", "end");
 
     // Build X scales and axis:
     var y = d3.scaleBand()
@@ -81,8 +84,8 @@
 
     // Build color scale
     var myColor = d3.scaleLinear()
-    .range(["white", "#69b3a2"])
-    .domain([1,100])
+    .range(["white", "black"])
+    .domain([-2.9,4.2])
 
     //Read the data
     function drawData (data) {
