@@ -34,7 +34,7 @@ def index():
     scaled_with_labels = pd.DataFrame(scaled_team_data,columns=df_pca_team.columns, index=df_pca_team.index)
     scaled_with_labels = scaled_with_labels.reset_index()
     
-    chart_data = pd.melt(scaled_with_labels, id_vars=["Team Name"])
+    chart_data = pd.melt(df_agg_team, id_vars=["Team Name"])
     chart_data = chart_data.to_dict(orient='records')
     chart_data = json.dumps(chart_data)
     data = {'chart_data': chart_data}
