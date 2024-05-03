@@ -11,17 +11,26 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 @app.route("/")
 def index():
-    df_agg_team = pd.read_csv("E2/static/data/df_agg_team.csv").drop(columns=["Unnamed: 0", "Team ID"])    
-    df_agg_team = df_agg_team[['Team Name','Number of Players', 'Height',
-       'Weight', 'Number of Birth Places', 'Total Games',
-       'Total Minutes Played', 'Field Goals', 'Field Goals Attempted',
-       'Field Goal %', '3pt', '3pt Attempted', '3pt %', '2pt', '2pt Attempted',
-       '2pt %', 'Free Throws', 'Free Throws Attempted', 'Free Throws %',
-       'Offensive Rebounds', 'Defensive Rebounds', 'Total Rebounds', 'Assists',
-       'Steals', 'Blocks', 'Turnovers', 'Personal Fouls', 'Points']]
+    df_agg_team = pd.read_csv("./static/data/df_agg_team.csv").drop(
+        columns=["Unnamed: 0", "Team ID"]
+    )
+    df_agg_player = pd.read_csv("./static/data/df_agg_player.csv").drop(
+        columns=["Unnamed: 0"]
+    )
+
+    df_cleaned_player_stats = pd.read_csv("./static/data/cleaned_df_player_stats.csv").drop(
+        columns=["Unnamed: 0"]
     
+)
+    
+
+    df_agg_player = df_agg_player[df_agg_player["Team Name"]!="retired"]
+    df_agg_team = df_agg_team[df_agg_team["Team Name"]!="retired"]
+
+
+
     df_pca_team = df_agg_team.set_index("Team Name", drop=True)
-    df_pca_team = df_pca_team.drop(index=["retired"]).select_dtypes("number")
+    df_pca_team = df_pca_team.select_dtypes("number")
 
     scaler = preprocessing.StandardScaler()
     scaled_team_data = scaler.fit_transform(df_pca_team)
