@@ -25,7 +25,7 @@ def get_heatmapdata():
     return heatmap_data
 
 @app.route('/scatterplot_data')
-def get_pcadata():
+def get_scatterplot_data():
     df_agg_team = pd.read_csv("./static/data/df_agg_team.csv").drop(
         columns=["Unnamed: 0", "Team ID"])
     
@@ -49,10 +49,19 @@ def get_pcadata():
 @app.route('/lineplot_data')
 def get_lineplotdata():
     df_cleaned_player_stats = pd.read_csv("./static/data/cleaned_df_player_stats.csv").drop(
-        columns=["Unnamed: 0", "level_0", "index"])
+        columns=["Unnamed: 0", "level_0", "index", "teams", "player_id", "player_url", "birth_place", "retired", "position", "height", "weight", "birth_date", "name", "full_name", "current_team_id"])
     df_cleaned_player_stats = df_cleaned_player_stats[df_cleaned_player_stats["team_name"]!="retired"]
+    team_summary = df_cleaned_player_stats.groupby(["team_name", "season"]).sum().reset_index()
+    team_summary['year'] = team_summary['season'].str.split('-').str[1]
+    team_summary['year'] = team_summary['year'].astype(int)  
+    team_summary['year'] = team_summary['year'].apply(lambda x: 1900 + x if x > 2024 % 100 else 2000 + x)
+    team_summary.drop(columns=["season"], inplace=True)
+    
+    # TODO: delete this filter! only testing
+    df_cleaned_player_stats = df_cleaned_player_stats[df_cleaned_player_stats["team_name"]=="Atlanta Hawks"]
+
     # Convert DataFrame to JSON and return
-    lineplot_data = df_cleaned_player_stats.to_json(orient='records')
+    lineplot_data = team_summary.to_json(orient='records')
     return lineplot_data
 
     

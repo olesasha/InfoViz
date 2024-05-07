@@ -2,10 +2,9 @@ d3.json("/heatmap_data").then(function(heatmap_data) {
     // Data processing and visualization code here
     console.log(heatmap_data); // verify data is loaded
     var graphData = heatmap_data;
-          // set the dimensions and margins of the graph
       // set the dimensions and margins of the graph
-      var margin = { top: 60, right: 60, bottom: 120, left: 120 },
-        width = 800 - margin.left - margin.right,
+      var margin = { top: 60, right: 60, bottom: 100, left: 120 },
+        width = 700 - margin.left - margin.right,
         height = 600 - margin.top - margin.bottom;
 
       // append the svg object to the body of the page
