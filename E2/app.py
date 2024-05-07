@@ -22,11 +22,8 @@ def index():
         columns=["Unnamed: 0"]
     
 )
-    
 
-    df_agg_player = df_agg_player[df_agg_player["Team Name"]!="retired"]
     df_agg_team = df_agg_team[df_agg_team["Team Name"]!="retired"]
-
 
     df_pca_team = df_agg_team.set_index("Team Name", drop=True)
     df_pca_team = df_pca_team.select_dtypes("number")
@@ -45,14 +42,14 @@ def index():
     return render_template("index.html")
 
     
-@app.route('/data')
+@app.route('/heatmapdata')
 def get_data():
     df_agg_team = pd.read_csv("./static/data/df_agg_team.csv").drop(
         columns=["Unnamed: 0", "Team ID"])
+    df_agg_team = df_agg_team[df_agg_team["Team Name"]!="retired"]
     chart_data = pd.melt(df_agg_team, id_vars=["Team Name"])
     # Convert DataFrame to JSON and return
     chart_data = chart_data.to_json(orient='records')
-    #chart_data = json.dumps(chart_data)
     data = chart_data
     return data
 

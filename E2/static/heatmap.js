@@ -1,10 +1,10 @@
-d3.json("/data").then(function(data) {
+d3.json("/heatmapdata").then(function(hetmapdata) {
     // Data processing and visualization code here
-    console.log(data); // verify data is loaded
-    var graphData = data;
+    console.log(hetmapdata); // verify data is loaded
+    var graphData = hetmapdata;
           // set the dimensions and margins of the graph
       // set the dimensions and margins of the graph
-      var margin = { top: 60, right: 60, bottom: 100, left: 700 },
+      var margin = { top: 60, right: 60, bottom: 120, left: 120 },
         width = 800 - margin.left - margin.right,
         height = 600 - margin.top - margin.bottom;
 
@@ -18,7 +18,7 @@ d3.json("/data").then(function(data) {
           "translate(" + margin.left + "," + margin.top + ")");
 
       // Labels of row and columns
-      var myGroups = ['retired', 'Atlanta Hawks', 'Boston Celtics', 'Brooklyn Nets',
+      var myGroups = ['Atlanta Hawks', 'Boston Celtics', 'Brooklyn Nets',
         'Charlotte Hornets', 'Chicago Bulls', 'Cleveland Cavaliers',
         'Dallas Mavericks', 'Denver Nuggets', 'Detroit Pistons',
         'Golden State Warriors', 'Houston Rockets', 'Indiana Pacers',
