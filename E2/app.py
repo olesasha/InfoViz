@@ -28,7 +28,6 @@ def index():
     df_agg_team = df_agg_team[df_agg_team["Team Name"]!="retired"]
 
 
-
     df_pca_team = df_agg_team.set_index("Team Name", drop=True)
     df_pca_team = df_pca_team.select_dtypes("number")
 
@@ -43,11 +42,20 @@ def index():
     scaled_with_labels = pd.DataFrame(scaled_team_data,columns=df_pca_team.columns, index=df_pca_team.index)
     scaled_with_labels = scaled_with_labels.reset_index()
     
+    return render_template("index.html")
+
+    
+@app.route('/data')
+def get_data():
+    df_agg_team = pd.read_csv("./static/data/df_agg_team.csv").drop(
+        columns=["Unnamed: 0", "Team ID"])
     chart_data = pd.melt(df_agg_team, id_vars=["Team Name"])
-    chart_data = chart_data.to_dict(orient='records')
-    chart_data = json.dumps(chart_data)
-    data = {'chart_data': chart_data}
-    return render_template("index.html", data=data)
+    # Convert DataFrame to JSON and return
+    chart_data = chart_data.to_json(orient='records')
+    #chart_data = json.dumps(chart_data)
+    data = chart_data
+    return data
+
 
 if __name__ == '__main__':
     app.run(debug=True)
