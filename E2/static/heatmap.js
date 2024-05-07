@@ -1,7 +1,7 @@
-d3.json("/heatmapdata").then(function(hetmapdata) {
+d3.json("/heatmap_data").then(function(heatmap_data) {
     // Data processing and visualization code here
-    console.log(hetmapdata); // verify data is loaded
-    var graphData = hetmapdata;
+    console.log(heatmap_data); // verify data is loaded
+    var graphData = heatmap_data;
           // set the dimensions and margins of the graph
       // set the dimensions and margins of the graph
       var margin = { top: 60, right: 60, bottom: 120, left: 120 },
@@ -9,7 +9,7 @@ d3.json("/heatmapdata").then(function(hetmapdata) {
         height = 600 - margin.top - margin.bottom;
 
       // append the svg object to the body of the page
-      var svg = d3.select("#my_dataviz")
+      var svg = d3.select("#heatmap")
         .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
