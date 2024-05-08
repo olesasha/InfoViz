@@ -24,3 +24,6 @@ body {
     margin: 1px;
     color: red;
 }
+.square rect{
+    color: black;
+}
