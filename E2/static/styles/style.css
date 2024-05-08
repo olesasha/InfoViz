@@ -24,6 +24,15 @@ body {
     margin: 1px;
     color: red;
 }
-.square rect{
-    color: black;
+.square {
+    border-radius: 5px;
 }
+
+.highlighted-row rect{
+    fill: red
+
+}
+
+
+
+

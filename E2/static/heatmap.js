@@ -1,11 +1,15 @@
+export { highlightColumn,removeHighlightColumn };
+
+var margin = { top: 60, right: 60, bottom: 100, left: 120 },
+  width = 700 - margin.left - margin.right,
+  height = 600 - margin.top - margin.bottom;
+
 d3.json("/heatmap_data").then(function (heatmap_data) {
   // Data processing and visualization code here
   console.log(heatmap_data); // verify data is loaded
   var graphData = heatmap_data;
   // set the dimensions and margins of the graph
-  var margin = { top: 60, right: 60, bottom: 100, left: 120 },
-    width = 700 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
+
 
   // append the svg object to the body of the page
   var svg = d3.select("#heatmap")
@@ -51,8 +55,7 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
     let max_colorscale = d3.max(heatmap_data.filter(d => d['variable'] === param), d => d.value)
     colorScales[param] = d3.scaleLinear()
       .domain([min_colorscale, max_colorscale])
-      //.domain([min_colorscale - 0.05 * min_colorscale, max_colorscale])
-      .range(['white', 'green']);
+      .range(["#defbe6", '#198038']);
   })
 
   //Read the data
@@ -75,5 +78,57 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
 
   }
   drawData(graphData);
+
 });
+
+
+
+function highlightColumn(teamName) {
+  console.log(teamName);
+
+  // Select the heatmap SVG
+  var svg = d3.select("#heatmap").select("g");
+
+  // Filter the rectangles to find those associated with the given teamName
+  var rect_to_border = svg.selectAll("rect.square")
+    .filter(function (d) { return d['Team Name'] === teamName; });
+
+
+
+
+  console.log(rect_to_border)
+  // Get the x coordinate of the first rectangle and calculate the total height
+  var x = +rect_to_border.attr("x");
+  var y = +rect_to_border.attr("y");
+  var width_box = +rect_to_border.attr("width");
+  console.log(svg)
+
+  // Add a rectangle to highlight the row
+  svg.append("rect")
+    .attr("x", x - 1)
+    .attr("y", 1)
+    .attr("width", 1.8)  // Adjust the width as needed
+    .attr("height", height)
+    .attr("class","highlightColumn")
+    .style("fill", "black");
+
+
+  svg.append("rect")
+    .attr("x", width_box + x - 0.5)
+    .attr("y", 1)
+    .attr("width", 1.8)  // Adjust the width as needed
+    .attr("height", height)
+    .attr("class","highlightColumn")
+    .style("fill", "black");
+
+}
+
+function removeHighlightColumn(){
+  d3.selectAll("rect.highlightColumn").remove()
+}
+
+
+
+
+
 
