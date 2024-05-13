@@ -7,19 +7,13 @@
     display: inline;
 }
 
-#tooltip{
+.style_tooltip{
     position: absolute;
     opacity: 0;
-    width: 110px;
-    background-color:  black;
     border-radius: 5px;
     font-family: sans-serif;
     text-align: left;
     font-size: 50%;
-    padding: 5px;
-    padding-left: 10px;
-    color: white;
-
 }
 
 #tooltip_team_name{
@@ -27,4 +21,21 @@
      margin-bottom: 6px;
 }
 
+#tooltip{
+    background-color: black;
+    color: white;
+    width: 110px;
+    padding: 5px;
+    padding-left: 10px;
+    border-radius: 5px;
+}
+
+
+/* TODO: Decide if tooltip should be adjusted for the scatterplot */
+#tooltip_scatter_plot{
+    background-color: white;
+    opacity: 0.2;
+    color: black;
+    padding-left: 1px;
+}
 

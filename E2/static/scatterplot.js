@@ -38,6 +38,11 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
   svg.append("g")
   //.call(d3.axisLeft(y)) //uncomment to show y axis
 
+  d3.select('body')
+    .append('div')
+    .attr('id', 'tooltip_scatter_plot')
+    .attr("class", "style_tooltip")
+
   function drawData(data) {
 
     svg.append('g')
@@ -50,10 +55,19 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
       .attr("cy", function (d) { return y(d.y) })
       .attr("r", 5)
       .style("fill", "#42be65")
-      .on("mouseover", function (_, d) { highlightColumn(d["Team Name"]) })
-      .on("mouseout", function () { removeHighlights() })
-      .append("title")
-      .text(function (d) { return d["Team Name"] })
+      .on("mouseover", function (_, d) {
+        highlightColumn(d["Team Name"])
+        d3.select('#tooltip_scatter_plot').style('opacity', 0.8).text(d["Team Name"])
+      })
+      .on("mousemove",function(event){
+        d3.select('#tooltip_scatter_plot')
+        .style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 10) + 'px')
+      })
+      .on("mouseout", function () { 
+        removeHighlights()
+        d3.select('#tooltip_scatter_plot').style('opacity', 0)       
+      })
   }
 
   drawData(graphData)
@@ -97,5 +111,5 @@ function colorDots(color_scale, stats_data) {
 // TODO: Decide if this function should be included
 function removeColorDots() {
   d3.selectAll("circle.pca_dots_colored")
-    .style("fill","#42be65")
+    .style("fill", "#42be65")
 }
