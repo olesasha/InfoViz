@@ -59,8 +59,8 @@ def get_lineplotdata():
     team_summary.drop(columns=["season"], inplace=True)
     
     # TODO: delete this filter! only testing
-    df_cleaned_player_stats = df_cleaned_player_stats[df_cleaned_player_stats["team_name"]=="Atlanta Hawks"]
-
+    team_summary = team_summary[team_summary["team_name"]=="Atlanta Hawks"]
+    
     # Convert DataFrame to JSON and return
     lineplot_data = team_summary.to_json(orient='records')
     return lineplot_data
