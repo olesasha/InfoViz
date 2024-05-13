@@ -49,6 +49,14 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
     .append('div')
     .attr('id', 'tooltip')
 
+  d3.select("#tooltip")
+    .append("div")
+    .attr("id", "tooltip_team_name")
+
+  d3.select("#tooltip")
+    .append("div")
+    .attr("id", "tooltip_metric")
+
   // Build color scale
   var colorScales = {};
   parameters.forEach(param => {
@@ -78,7 +86,7 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
         highlightDot(d["Team Name"])
         let filtered_data = heatmap_data.filter(function (data) { return data.variable === d.variable })
         colorDots(colorScales[d.variable], filtered_data)
-        showInfoToolTip(d["Team Name"], d.variable,d.value)
+        showInfoToolTip(d["Team Name"], d.variable, d.value)
       })
       .on("mouseleave", function () {
         removeDotHighlight()
@@ -90,8 +98,8 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
       })
 
       .style("fill", function (d) { return colorScales[d.variable](d.value) })
-      .append("title")
-      .text(function (d) { return d.value })
+      //.append("title")
+      //.text(function (d) { return d.value })
 
   }
   drawData(graphData);
@@ -184,14 +192,18 @@ function showInfoToolTip(teamName, variable, value) {
   var svg = d3.select("#heatmap").select("g");
   highlightColumn(teamName)
   highlightRow(variable)
-  d3.select('#tooltip').style('opacity', 0.8).text(value)
+  let text_metric = `${variable}: ${value}`
+  //d3.select('#tooltip').style('opacity', 0.8).text(text_tooltip)
+  d3.select('#tooltip').style('opacity', 0.8)
+  d3.select("#tooltip_team_name").text(teamName)
+  d3.select("#tooltip_metric").text(text_metric)
 }
 
 
-function moveToolTip(event){
+function moveToolTip(event) {
   d3.select('#tooltip')
-  .style('left', (event.pageX + 10) + 'px')
-  .style('top', (event.pageY - 10) + 'px')
+    .style('left', (event.pageX + 10) + 'px')
+    .style('top', (event.pageY - 15) + 'px')
 }
 
 
