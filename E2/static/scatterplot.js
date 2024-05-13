@@ -1,24 +1,16 @@
-import { highlightColumn,removeHighlightColumn } from './heatmap.js';
-
-function removeHighlight() {
-  let svg = d3.select("#heatmap");
-  // Reset the fill color to its original value
-  svg.selectAll(".highlighted-row")
-    .style("stroke", "none")
-    .classed("highlighted-row", false);
-}
-
+import { highlightColumn, removeHighlights } from './heatmap.js'
+export { highlightDot, removeDotHighlight, colorDots }
 
 
 d3.json("/scatterplot_data").then(function (scatterplot_data) {
   // Data processing and visualization code here
-  console.log(scatterplot_data); // verify data is loaded
-  var graphData = scatterplot_data;
+  var graphData = scatterplot_data
+
 
   // set the dimensions and margins of the graph
   var margin = { top: 60, right: 60, bottom: 100, left: 120 },
     width = 700 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
+    height = 600 - margin.top - margin.bottom
 
   // append the svg object to the body of the page
   let svg = d3.select("#scatterplot")
@@ -27,24 +19,24 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform",
-      "translate(" + margin.left + "," + margin.top + ")");
+      "translate(" + margin.left + "," + margin.top + ")")
 
   // Add X axis
   var x = d3.scaleLinear()
     .domain([d3.min(scatterplot_data, d => d.x),
     d3.max(scatterplot_data, d => d.x)])
-    .range([0, width]);
+    .range([0, width])
   svg.append("g")
     .attr("transform", "translate(0," + height + ")")
-  //.call(d3.axisBottom(x)); //uncomment to show x axis
+  //.call(d3.axisBottom(x)) //uncomment to show x axis
 
   // Add Y axis
   var y = d3.scaleLinear()
     .domain([d3.min(scatterplot_data, d => d.y),
     d3.max(scatterplot_data, d => d.y)])
-    .range([height, 0]);
+    .range([height, 0])
   svg.append("g")
-  //.call(d3.axisLeft(y)); //uncomment to show y axis
+  //.call(d3.axisLeft(y)) //uncomment to show y axis
 
   function drawData(data) {
 
@@ -53,15 +45,57 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
       .data(data)
       .enter()
       .append("circle")
-      .attr("cx", function (d) { return x(d.x); })
-      .attr("cy", function (d) { return y(d.y); })
+      .attr("class", "pca_dot")
+      .attr("cx", function (d) { return x(d.x) })
+      .attr("cy", function (d) { return y(d.y) })
       .attr("r", 5)
-      .style("fill", "#69b3a2")
+      .style("fill", "#42be65")
       .on("mouseover", function (_, d) { highlightColumn(d["Team Name"]) })
-      .on("mouseout", function () { removeHighlightColumn() })
+      .on("mouseout", function () { removeHighlights() })
       .append("title")
       .text(function (d) { return d["Team Name"] })
   }
 
-  drawData(graphData);
-});  
+  drawData(graphData)
+})
+
+
+function highlightDot(teamName) {
+
+  var svg = d3.select("#scatterplot").select("g")
+
+  var selected_dot = svg.selectAll("circle.pca_dot")
+    .filter(function (d) { return d['Team Name'] === teamName })
+
+  selected_dot
+    .style("stroke", "#da1e28")
+    .style("stroke-width", 2)
+    .classed("is_highlighted", true)
+
+}
+
+function removeDotHighlight() {
+  d3.selectAll("circle.is_highlighted")
+    .style("stroke", "none")
+    .classed("is_highlighted", false)
+
+}
+
+function colorDots(color_scale, stats_data) {
+
+
+  d3.selectAll("circle.pca_dot")
+    .style("fill", function (d) {
+
+      return color_scale(stats_data.find(data => data["Team Name"] === d["Team Name"]).value);
+    })
+    .classed("pca_dots_colored", true)
+
+}
+
+
+// TODO: Decide if this function should be included
+function removeColorDots() {
+  d3.selectAll("circle.pca_dots_colored")
+    .style("fill","#42be65")
+}

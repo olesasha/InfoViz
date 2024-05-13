@@ -1,17 +1,13 @@
-export { highlightColumn,removeHighlightColumn };
+import { highlightDot, removeDotHighlight, colorDots } from "./scatterplot.js";
+export { highlightColumn, removeHighlights };
 
-var margin = { top: 60, right: 60, bottom: 100, left: 120 },
+var margin = { top: 50, right: 50, bottom: 150, left: 150 },
   width = 700 - margin.left - margin.right,
-  height = 600 - margin.top - margin.bottom;
+  height = 650 - margin.top - margin.bottom;
 
 d3.json("/heatmap_data").then(function (heatmap_data) {
-  // Data processing and visualization code here
-  console.log(heatmap_data); // verify data is loaded
+
   var graphData = heatmap_data;
-  // set the dimensions and margins of the graph
-
-
-  // append the svg object to the body of the page
   var svg = d3.select("#heatmap")
     .append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -29,7 +25,7 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
   var x = d3.scaleBand()
     .range([0, width])
     .domain(team_names)
-    .padding(0.05)
+    .padding(0.02)
 
   svg.append("g")
     .attr("transform", "translate(0," + height + ")")
@@ -37,16 +33,21 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
       .tickSizeOuter(0)) // This will remove the outer ticks
     .selectAll("text")
     .attr("transform", "translate(-10,0)rotate(-45)")
-    .style("text-anchor", "end");
+    .style("text-anchor", "end")
 
   // Build Y scales and axis:
   var y = d3.scaleBand()
     .range([height, 0])
     .domain(parameters)
-    .padding(0.05)
+    .padding(0.02)
   svg.append("g")
     .call(d3.axisLeft(y)
       .tickSizeOuter(0));
+
+
+  d3.select('body')
+    .append('div')
+    .attr('id', 'tooltip')
 
   // Build color scale
   var colorScales = {};
@@ -57,6 +58,7 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
       .domain([min_colorscale, max_colorscale])
       .range(["#defbe6", '#198038']);
   })
+
 
   //Read the data
   function drawData(data) {
@@ -72,6 +74,21 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
       .attr("class", "square")
       .attr("rx", 2)
       .attr("ry", 2)
+      .on("mouseover", function (_, d) {
+        highlightDot(d["Team Name"])
+        let filtered_data = heatmap_data.filter(function (data) { return data.variable === d.variable })
+        colorDots(colorScales[d.variable], filtered_data)
+        showInfoToolTip(d["Team Name"], d.variable,d.value)
+      })
+      .on("mouseleave", function () {
+        removeDotHighlight()
+        removeHighlights()
+
+      })
+      .on('mousemove', function (event) {
+        moveToolTip(event)
+      })
+
       .style("fill", function (d) { return colorScales[d.variable](d.value) })
       .append("title")
       .text(function (d) { return d.value })
@@ -84,7 +101,6 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
 
 
 function highlightColumn(teamName) {
-  console.log(teamName);
 
   // Select the heatmap SVG
   var svg = d3.select("#heatmap").select("g");
@@ -93,40 +109,90 @@ function highlightColumn(teamName) {
   var rect_to_border = svg.selectAll("rect.square")
     .filter(function (d) { return d['Team Name'] === teamName; });
 
-
-
-
-  console.log(rect_to_border)
   // Get the x coordinate of the first rectangle and calculate the total height
   var x = +rect_to_border.attr("x");
   var y = +rect_to_border.attr("y");
   var width_box = +rect_to_border.attr("width");
-  console.log(svg)
-
-  // Add a rectangle to highlight the row
-  svg.append("rect")
-    .attr("x", x - 1)
-    .attr("y", 1)
-    .attr("width", 1.8)  // Adjust the width as needed
-    .attr("height", height)
-    .attr("class","highlightColumn")
-    .style("fill", "black");
-
 
   svg.append("rect")
-    .attr("x", width_box + x - 0.5)
+    .attr("x", x)
     .attr("y", 1)
-    .attr("width", 1.8)  // Adjust the width as needed
-    .attr("height", height)
-    .attr("class","highlightColumn")
-    .style("fill", "black");
+    .attr("width", width_box)  // Adjust the width as needed
+    .attr("height", height - 1)
+    .attr("rx", 2)
+    .attr("ry", 2)
+    .attr("class", "highlightHeatmap")
+    .style("fill", "none")
+    .style("stroke", "black")
+    .style("stroke-width", 1)
+
+  svg.selectAll("g.tick")
+    .filter(function (d) { return d == teamName })
+    .style("font-weight", "bold")
+    .style("font-size", "110%")
+    .classed("bold_tick", true)
 
 }
 
-function removeHighlightColumn(){
-  d3.selectAll("rect.highlightColumn").remove()
+function removeHighlights() {
+  d3.selectAll("rect.highlightHeatmap").remove()
+  d3.selectAll("g.tick.bold_tick")
+    .style("font-weight", "normal")
+    .style("font-size", "100%")
+    .classed("bold_tick", false)
+
+  d3.select('#tooltip').style('opacity', 0)
+
 }
 
+
+function highlightRow(variable) {
+
+  // Select the heatmap SVG
+  var svg = d3.select("#heatmap").select("g");
+
+  // Filter the rectangles to find those associated with the given teamName
+  var rect_to_border = svg.selectAll("rect.square")
+    .filter(function (d) { return d.variable === variable; });
+
+  // Get the x coordinate of the first rectangle and calculate the total height
+  var y = +rect_to_border.attr("y");
+  var height_box = +rect_to_border.attr("height");
+
+  svg.append("rect")
+    .attr("x", 0)
+    .attr("y", y)
+    .attr("width", width - 1)  // Adjust the width as needed
+    .attr("height", height_box)
+    .attr("rx", 2)
+    .attr("ry", 2)
+    .attr("class", "highlightHeatmap")
+    .style("fill", "none")
+    .style("stroke", "black")
+    .style("stroke-width", 1)
+
+  svg.selectAll("g.tick")
+    .filter(function (d) { return d == variable })
+    .style("font-weight", "bold")
+    .style("font-size", "110%")
+    .classed("bold_tick", true)
+
+}
+
+
+function showInfoToolTip(teamName, variable, value) {
+  var svg = d3.select("#heatmap").select("g");
+  highlightColumn(teamName)
+  highlightRow(variable)
+  d3.select('#tooltip').style('opacity', 0.8).text(value)
+}
+
+
+function moveToolTip(event){
+  d3.select('#tooltip')
+  .style('left', (event.pageX + 10) + 'px')
+  .style('top', (event.pageY - 10) + 'px')
+}
 
 
 

@@ -2,31 +2,23 @@
 <html lang="en">
 
 <head>
-
-  <meta charset="UTF-8">
-  <title>NBA Data Analytics</title>
-
-  <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='styles/style.css')}}">
-
-</head>
+    <meta charset="UTF-8">
+    <title>NBA Data Analytics</title>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='styles/style.css')}}">
+  </head>
 
 <body>
+  <div class="plot-container">
+    <div  id="heatmap" class="group_1"></div>
+    <div  id="scatterplot" class="group_1"></div>
+    <div  id="lineplot"></div>
+  </div>
+  
 
-  <div id="heatmap">  </div>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='heatmap.js') }}"></script>
-
-  <div id="scatterplot">  </div>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='scatterplot.js') }}"></script>
-
-  <div id="scatterplot">  </div>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='lineplot.js') }}"></script>
-
 </body>
-
-
-
 
 </html>

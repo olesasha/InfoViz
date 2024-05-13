@@ -44,6 +44,7 @@ def get_scatterplot_data():
 
     # Convert DataFrame to JSON and return
     scatterplot_data = df_pca_team_components.to_json(orient='records')
+    
     return scatterplot_data
 
 @app.route('/lineplot_data')
