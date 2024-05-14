@@ -8,7 +8,7 @@
 
 .style_tooltip{
     position: absolute;
-    opacity: 0;
+    visibility: hidden;
     border-radius: 5px;
     font-family: sans-serif;
     text-align: left;
@@ -22,6 +22,7 @@
 
 #tooltip{
     background-color: black;
+    opacity: 0.8;
     color: white;
     width: 110px;
     padding: 5px;
@@ -33,7 +34,7 @@
 /* TODO: Decide if tooltip should be adjusted for the scatterplot */
 #tooltip_scatter_plot{
     background-color: white;
-    opacity: 0.2;
+    opacity: 0.8;
     color: black;
     padding-left: 1px;
 }

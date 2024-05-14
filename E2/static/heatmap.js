@@ -14,14 +14,13 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform",
-      "translate(" + margin.left + "," + margin.top + ")");
+      "translate(" + margin.left + "," + margin.top + ")")
 
   // Labels of row and columns
 
   var team_names = [...new Set(graphData.map(item => item['Team Name']))]
   var parameters = [...new Set(graphData.map(item => item['variable']))]
 
-  // Build X scales and axis:
   var x = d3.scaleBand()
     .range([0, width])
     .domain(team_names)
@@ -30,25 +29,27 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
   svg.append("g")
     .attr("transform", "translate(0," + height + ")")
     .call(d3.axisBottom(x)
-      .tickSizeOuter(0)) // This will remove the outer ticks
+      .tickSizeOuter(0))
     .selectAll("text")
     .attr("transform", "translate(-10,0)rotate(-45)")
     .style("text-anchor", "end")
 
-  // Build Y scales and axis:
+
   var y = d3.scaleBand()
     .range([height, 0])
     .domain(parameters)
     .padding(0.02)
+
   svg.append("g")
     .call(d3.axisLeft(y)
-      .tickSizeOuter(0));
+      .tickSizeOuter(0))
+
 
 
   d3.select('body')
     .append('div')
     .attr('id', 'tooltip')
-    .attr("class","style_tooltip")
+    .attr("class", "style_tooltip")
 
   d3.select("#tooltip")
     .append("div")
@@ -92,16 +93,12 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
       .on("mouseleave", function () {
         removeDotHighlight()
         removeHighlights()
-
       })
       .on('mousemove', function (event) {
         moveToolTip(event)
       })
 
       .style("fill", function (d) { return colorScales[d.variable](d.value) })
-      //.append("title")
-      //.text(function (d) { return d.value })
-
   }
   drawData(graphData);
 
@@ -150,7 +147,7 @@ function removeHighlights() {
     .style("font-size", "100%")
     .classed("bold_tick", false)
 
-  d3.select('#tooltip').style('opacity', 0)
+  d3.select('#tooltip').style('visibility', "hidden")
 
 }
 
@@ -195,7 +192,7 @@ function showInfoToolTip(teamName, variable, value) {
   highlightRow(variable)
   let text_metric = `${variable}: ${value}`
   //d3.select('#tooltip').style('opacity', 0.8).text(text_tooltip)
-  d3.select('#tooltip').style('opacity', 0.8)
+  d3.select('#tooltip').style('visibility', "visible")
   d3.select("#tooltip_team_name").text(teamName)
   d3.select("#tooltip_metric").text(text_metric)
 }
