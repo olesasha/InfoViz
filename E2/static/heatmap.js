@@ -1,7 +1,7 @@
 import { highlightDot, removeDotHighlight, colorDots } from "./scatterplot.js";
 export { highlightColumn, removeHighlights };
 
-var margin = { top: 50, right: 50, bottom: 150, left: 150 },
+var margin = { top: 60, right: 50, bottom: 150, left: 150 },
   width = 700 - margin.left - margin.right,
   height = 650 - margin.top - margin.bottom;
 
@@ -16,6 +16,13 @@ d3.json("/heatmap_data").then(function (heatmap_data) {
     .attr("transform",
       "translate(" + margin.left + "," + margin.top + ")");
 
+    svg.append("text")
+    .attr("x", (width / 2))
+    .attr("y", 0 - (margin.top / 2))
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .attr("font-family", "sans-serif")
+    .text("Heatmap for alltime scores");
   // Labels of row and columns
 
   var team_names = [...new Set(graphData.map(item => item['Team Name']))]

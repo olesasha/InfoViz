@@ -10,6 +10,7 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
     // append the svg object to the body of the page
     var svg = d3.select("#lineplot")
     .append("svg")
+    .attr("class", "y-axis")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
@@ -61,12 +62,14 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
     var y = d3.scaleLinear()
     .domain(d3.extent(lineplot_data, function(d) { return +d.total_games; }))
     .range([ height, 0 ]);
+
     svg.append("g")
     .call(d3.axisLeft(y));
 
     // Initialize line with group a
     var line = svg
-    .append('g')
+    .append("g")
+    .attr("class", "y-axis")
     .append("path")
         .datum(lineplot_data)
         .attr("d", d3.line()
@@ -85,14 +88,15 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
     // Create new data with the selection?
     //var dataFilter = lineplot_data.map(function(d){return {year: d.year, value:d[selectedGroup]} })
     var dataFilter = lineplot_data.map(function(d) {
-        return { year: d.year, value: +d[selectedGroup] || 0 }; // Handle missing values
+        return { year: d.year, value: +d[selectedGroup]}; 
     });
     
-    y.domain(d3.extent(dataFilter, function(d) { return +d.value; }));
-    svg.select("g")
-        .transition()
-        .duration(1000)
-        .call(d3.axisLeft(y)); 
+    y.domain(d3.extent(lineplot_data, function(d) { return +d[selectedGroup]; }))
+    .range([ height, 0 ]);
+
+    svg.select(".y-axis")
+    .call(d3.axisLeft(y));
+
     // Give these new data to update line
     line
         .datum(dataFilter)
