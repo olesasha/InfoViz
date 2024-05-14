@@ -45,6 +45,9 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
     .domain([1999,2020])
     .range([ 0, width ]);
 
+    svg.append("text")
+    .attr("class","title")
+
     svg.append("g")
     .attr("transform", "translate(0," + height + ")")
     .call(d3.axisBottom(x));
