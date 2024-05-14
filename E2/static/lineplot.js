@@ -17,7 +17,6 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
         "translate(" + margin.left + "," + margin.top + ")");
 
     var title =  svg.append("text")
-    .attr("class", "plot-title")
     .attr("x", width / 2)
     .attr("y", -margin.top / 2)
     .attr("text-anchor", "middle")
@@ -59,7 +58,8 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
 
     svg.append("g")
     .attr("class","yAxis")
-    .call(d3.axisLeft(y));
+    .call(d3.axisLeft(y))
+
 
     // Initialize line with group a
     var line = svg
@@ -72,7 +72,7 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
         .y(function(d) { return y(+d.total_games) })
         )
         .attr("stroke", "green")
-        .style("stroke-width", 4)
+        .style("stroke-width", 2)
         .style("fill", "none")
 
     
@@ -91,7 +91,7 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
     svg.select(".yAxis")
     .call(d3.axisLeft(y));
 
-    svg.select(".plot-title")
+    svg.select(".title")
     .attr("x", (width / 2))
     .attr("y", 0 - (margin.top / 2))
     .attr("text-anchor", "middle")
