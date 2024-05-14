@@ -65,7 +65,7 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
       .style("fill", "#42be65")
       .on("mouseover", function (_, d) {
         highlightColumn(d["Team Name"])
-        d3.select('#tooltip_scatter_plot').style('opacity', 0.8).text(d["Team Name"])
+        d3.select('#tooltip_scatter_plot').style('visibility',"visible").text(d["Team Name"])
       })
       .on("mousemove",function(event){
         d3.select('#tooltip_scatter_plot')
@@ -74,7 +74,7 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
       })
       .on("mouseout", function () { 
         removeHighlights()
-        d3.select('#tooltip_scatter_plot').style('opacity', 0)       
+        d3.select('#tooltip_scatter_plot').style('visibility', "hidden")       
       })
   }
 
