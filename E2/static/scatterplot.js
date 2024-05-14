@@ -20,15 +20,15 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
     .append("g")
     .attr("transform",
       "translate(" + margin.left + "," + margin.top + ")")
-
-      svg.append("text")
+  
+    svg.append("text")
       .attr("x", (width / 2))
       .attr("y", 0 - (margin.top/2))
       .attr("text-anchor", "middle")
       .style("font-size", "16px")
       .attr("font-family", "sans-serif")
-      .text("PCA for variable X");
-  
+      .text("PCA colored for variable X");
+
   // Add X axis
   var x = d3.scaleLinear()
     .domain([d3.min(scatterplot_data, d => d.x),
@@ -80,7 +80,6 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
 
   drawData(graphData)
 })
-
 
 function highlightDot(teamName) {
 
