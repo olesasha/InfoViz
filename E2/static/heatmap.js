@@ -1,5 +1,5 @@
 import { highlightDot, removeDotHighlight, colorDots } from "./scatterplot.js";
-export { highlightColumn, removeHighlights };
+export { highlightColumn, highlightRow, removeHighlights };
 
 var margin = { top: 60, right: 50, bottom: 150, left: 150 },
   width = 700 - margin.left - margin.right,

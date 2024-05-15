@@ -1,4 +1,5 @@
 import { highlightColumn, removeHighlights } from './heatmap.js'
+import { setTeam} from "./lineplot.js";
 export { highlightDot, removeDotHighlight, colorDots }
 
 
@@ -65,6 +66,7 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
       .style("fill", "#42be65")
       .on("mouseover", function (_, d) {
         highlightColumn(d["Team Name"])
+      
         d3.select('#tooltip_scatter_plot').style('visibility',"visible").text(d["Team Name"])
       })
       .on("mousemove",function(event){
@@ -93,6 +95,7 @@ function highlightDot(teamName) {
     .style("stroke-width", 2)
     .classed("is_highlighted", true)
 
+    setTeam(teamName);
 }
 
 function removeDotHighlight() {

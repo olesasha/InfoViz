@@ -57,10 +57,7 @@ def get_lineplotdata():
     team_summary['year'] = team_summary['year'].astype(int)  
     team_summary['year'] = team_summary['year'].apply(lambda x: 1900 + x if x > 2024 % 100 else 2000 + x)
     team_summary.drop(columns=["season"], inplace=True)
-    
-    # TODO: delete this filter! only testing
-    team_summary = team_summary[team_summary["team_name"]=="Atlanta Hawks"]
-    
+        
     # Convert DataFrame to JSON and return
     lineplot_data = team_summary.to_json(orient='records')
     return lineplot_data

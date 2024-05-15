@@ -1,5 +1,15 @@
-import { highlightDot, removeDotHighlight, colorDots } from "./scatterplot.js";
-import { highlightColumn, removeHighlights } from './heatmap.js'
+import { highlightDot} from "./scatterplot.js";
+export { setTeam }
+
+
+let selectedTeam = "Atlanta Hawks"; //default
+let selectedGroup = "total_games"; //default
+
+function setTeam(teamName) {
+    selectedTeam = teamName;
+    updateSelect(selectedGroup, selectedTeam);
+}
+
 
 d3.json("/lineplot_data").then(function(lineplot_data) {
     // set the dimensions and margins of the graph
@@ -63,7 +73,6 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
     .attr("class","yAxis")
     .call(d3.axisLeft(y))
 
-
     // Initialize line with group a
     var line = svg
     .append("g")
@@ -77,41 +86,6 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
         .attr("stroke", "green")
         .style("stroke-width", 2)
         .style("fill", "none")
-
-    
-    // A function that update the chart
-    function updateSelect(selectedGroup) {
-
-    // Create new data with the selection?
-    //var dataFilter = lineplot_data.map(function(d){return {year: d.year, value:d[selectedGroup]} })
-    var dataFilter = lineplot_data.map(function(d) {
-        return { year: d.year, value: +d[selectedGroup]}; 
-    });
-    
-    y.domain(d3.extent(lineplot_data, function(d) { return +d[selectedGroup]; }))
-    .range([ height, 0 ]);
-
-    svg.select(".yAxis")
-    .call(d3.axisLeft(y));
-
-    svg.select(".title")
-    .attr("x", (width / 2))
-    .attr("y", 0 - (margin.top / 2))
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .attr("font-family", "sans-serif")
-    .text( selectedGroup + " for Team X");
-
-    // Give these new data to update line
-    line
-        .datum(dataFilter)
-        .transition()
-        .duration(1000)
-        .attr("d", d3.line()
-            .x(function(d) { return x(+d.year) })
-            .y(function(d) { return y(+d.value) })
-        )
-    }
     
     // When the button is changed, run the updateChart function
     d3.select("#selectButton").on("change", function(d) {
@@ -119,5 +93,39 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
         var selectedOption = d3.select(this).property("value")
         // run the updateChart function with this selected option
         updateSelect(selectedOption);
-    })
+    });
+
+        // A function that update the chart
+        function updateSelect(selectedGroup, selectedTeam) {
+
+            var dataFilter = lineplot_data.filter(function(d) {
+                return d.team_name === selectedTeam;  
+            }).map(function(d) {
+            return { year: d.year, value: +d[selectedGroup] };
+                });
+            
+            y.domain(d3.extent(lineplot_data, function(d) { return +d[selectedGroup]; }))
+            .range([ height, 0 ]);
+        
+            svg.select(".yAxis")
+            .call(d3.axisLeft(y));
+        
+            svg.select(".title")
+            .attr("x", (width / 2))
+            .attr("y", 0 - (margin.top / 2))
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+            .attr("font-family", "sans-serif")
+            .text(selectedGroup + " for Team " + selectedTeam);
+        
+            // Give these new data to update line
+            line
+                .datum(dataFilter)
+                .transition()
+                .duration(1000)
+                .attr("d", d3.line()
+                    .x(function(d) { return x(+d.year) })
+                    .y(function(d) { return y(+d.value) })
+                )
+            }
 });  
