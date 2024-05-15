@@ -92,9 +92,11 @@ d3.json("/lineplot_data").then(function(lineplot_data) {
         // recover the option that has been chosen
         var selectedOption = d3.select(this).property("value")
         // run the updateChart function with this selected option
-        updateSelect(selectedOption);
+        updateSelect(selectedOption, selectedTeam);
     });
 
+    let selectedTeam = "Atlanta Hawks"; //default
+    let selectedGroup = "total_games"; //default
         // A function that update the chart
         function updateSelect(selectedGroup, selectedTeam) {
 
