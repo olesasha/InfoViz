@@ -3,7 +3,7 @@ export { highlightColumn, highlightRow, removeHighlights, init_heatmap };
 
 
 function init_heatmap(heatmap_data) {
-  console.log('it worked')
+  console.log('heatmap initialised')
   render_heatmap(heatmap_data)
 }
 

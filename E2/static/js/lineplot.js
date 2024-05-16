@@ -73,7 +73,7 @@ function render_lineplot(lineplot_data) {
 
     // Add Y axis
     y = d3.scaleLinear()
-        .domain(d3.extent(lineplot_data, function (d) { return +d.total_games; }))
+        .domain(d3.extent(lineplot_data, function (d) { return +d["Number of players"]; }))
         .range([height, 0]);
 
     svg.append("g")
@@ -89,7 +89,7 @@ function render_lineplot(lineplot_data) {
         .datum(lineplot_data)
         .attr("d", d3.line()
             .x(function (d) { return x(+d["year"]) })
-            .y(function (d) { return y(+d.total_games) })
+            .y(function (d) { return y(+d["Number of players"]) })
         )
         .attr("stroke", "none")
         .style("stroke-width", 2)
@@ -151,7 +151,7 @@ function updateSelect() {
     line
         .datum(dataFilter)
         .transition()
-        .duration(100)
+        .duration(300)
         .attr("d", d3.line()
             .x(function (d) { return x(+d["year"]) })
             .y(function (d) { return y(+d["value"]) })
