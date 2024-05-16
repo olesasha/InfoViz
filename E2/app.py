@@ -5,32 +5,40 @@ import numpy as np
 
 app = Flask(__name__)
 
-# ensure that we can reload when we change the HTML / JS for debugging
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
 def get_heatmapdata():
+    
+    # Drop columns which do not make sense in a heatmap
     df_agg_team = pd.read_csv("./static/data/df_agg_team.csv").drop(
         columns=["Unnamed: 0", "Team ID"]
     )
+
+    # Get rid off the "Team" retired as is heavily influences the coloring of the heatmap for some columns
     df_agg_team = df_agg_team[df_agg_team["Team Name"] != "retired"]
+
     heatmap_data = pd.melt(df_agg_team, id_vars=["Team Name"], var_name="metric")
-    # Convert DataFrame to JSON and return
     heatmap_data = heatmap_data.to_json(orient="records")
     return heatmap_data
 
 
 def get_scatterplot_data():
+
     df_agg_team = pd.read_csv("./static/data/df_agg_team.csv").drop(
         columns=["Unnamed: 0", "Team ID"]
     )
 
+    # Drop "retired" as it is not displayed in the heatmap
     df_agg_team = df_agg_team[df_agg_team["Team Name"] != "retired"]
 
+
+    # Calculate the pca
     df_pca_team = df_agg_team.set_index("Team Name", drop=True)
     df_pca_team = df_pca_team.select_dtypes("number")
 
+    # Scale the data to the standard normal distribution
     scaler = preprocessing.StandardScaler()
     scaled_team_data = scaler.fit_transform(df_pca_team)
 
@@ -41,13 +49,14 @@ def get_scatterplot_data():
         pca_team_data, index=df_pca_team.index, columns=["x", "y"]
     ).reset_index()
 
-    # Convert DataFrame to JSON and return
     scatterplot_data = df_pca_team_components.to_json(orient="records")
 
     return scatterplot_data
 
 
 def get_lineplotdata():
+
+    # Drop columns which are not in the heatmap
 
     df_cleaned_player_stats = pd.read_csv(
         "./static/data/cleaned_df_player_stats.csv"
@@ -67,6 +76,7 @@ def get_lineplotdata():
         ]
     )
 
+    # dictionary to specify the aggregation function for each column
     dict_agg = {
         "name": [lambda x: len(np.unique(x))],
         "weight": ["mean"],
@@ -97,44 +107,61 @@ def get_lineplotdata():
     df_cleaned_player_stats = df_cleaned_player_stats[
         df_cleaned_player_stats["team_name"] != "retired"
     ]
+
     team_summary = (
         df_cleaned_player_stats.groupby(["team_name", "season"])
         .agg(dict_agg)
         .reset_index()
     )
+
+    # Important: Drop the newly created additonal column names. as these lead to failure of the following functions
     team_summary.columns = team_summary.columns.get_level_values(0)
 
-    team_summary['total_games'] = team_summary.groupby(['team_name'])['total_games'].cumsum()
-    team_summary['minutes_played'] = team_summary.groupby(['team_name'])['minutes_played'].cumsum()
-    
-    team_summary[["fg3p", "fg2p", "ftp"]] = team_summary[["fg3p", "fg2p", "ftp"]].apply(lambda x: round(x*100, 2))
-    
+    # Calculate the cummulative sum of the games and minutes played as this value is used in the heatmap
+    team_summary["total_games"] = team_summary.groupby(["team_name"])[
+        "total_games"
+    ].cumsum()
 
-    team_summary = team_summary.rename(columns={"name": "Number of players",
-                                                "weight" : "Avg weight of a player in lbs",
-                                                "height": "Avg height of a player in inches",
-                                                "birth_place" : "Number of unique birth places",
-                                                "total_games": "Total Games",
-                                                "minutes_played": "Total minutes played",
-                                                "fg3": "Avg number of 3pt per player",
-                                                "fg2": "Avg number of 2pt per player",
-                                                "fg": "Avg number of field goals per player",
-                                                "fg3a": "Avg number of 3pt attempts per player",
-                                                "fg2a": "Avg number of 2pt attempts per player",
-                                                "fg3p": "Avg percent of successful 3pt per player",
-                                                "fg2p": "Avg percent of successful 2pt per player",
-                                                "ft": "Avg number of free throws per player",
-                                                "fta": "Avg number of free throw attempts per player",
-                                                "ftp": "Avg percent of successful free throws per player",
-                                                "orb": "Avg number of offensive rebounds per player",
-                                                "drb": "Avg number of defensive rebounds per player",
-                                                "trb": "Avg number of total rebounds per player",
-                                                "ast": "Avg number of assists per player",
-                                                "stl": "Avg number of steals per player",
-                                                "blk": "Avg number of blocks per player",
-                                                "tov": "Avg number of turonvers per player",
-                                                "pts": "Avg points per player"
-                                                })
+    team_summary["minutes_played"] = team_summary.groupby(["team_name"])[
+        "minutes_played"
+    ].cumsum()
+
+    # Convert the metrics to percentages
+    team_summary[["fg3p", "fg2p", "ftp"]] = team_summary[["fg3p", "fg2p", "ftp"]].apply(
+        lambda x: round(x * 100, 2)
+    )
+
+
+    # Rename the columns for higher clarity
+    
+    team_summary = team_summary.rename(
+        columns={
+            "name": "Number of players",
+            "weight": "Avg weight of a player in lbs",
+            "height": "Avg height of a player in inches",
+            "birth_place": "Number of unique birth places",
+            "total_games": "Total Games",
+            "minutes_played": "Total minutes played",
+            "fg3": "Avg number of 3pt per player",
+            "fg2": "Avg number of 2pt per player",
+            "fg": "Avg number of field goals per player",
+            "fg3a": "Avg number of 3pt attempts per player",
+            "fg2a": "Avg number of 2pt attempts per player",
+            "fg3p": "Avg percent of successful 3pt per player",
+            "fg2p": "Avg percent of successful 2pt per player",
+            "ft": "Avg number of free throws per player",
+            "fta": "Avg number of free throw attempts per player",
+            "ftp": "Avg percent of successful free throws per player",
+            "orb": "Avg number of offensive rebounds per player",
+            "drb": "Avg number of defensive rebounds per player",
+            "trb": "Avg number of total rebounds per player",
+            "ast": "Avg number of assists per player",
+            "stl": "Avg number of steals per player",
+            "blk": "Avg number of blocks per player",
+            "tov": "Avg number of turonvers per player",
+            "pts": "Avg points per player",
+        }
+    )
 
     team_summary["year"] = team_summary["season"].str.split("-").str[1]
     team_summary["year"] = team_summary["year"].astype(int)
@@ -155,13 +182,13 @@ def get_lineplotdata():
 
 @app.route("/")
 def index():
+
     return render_template(
         "index.html",
         heatmap_data=get_heatmapdata(),
         scatterplot_data=get_scatterplot_data(),
         lineplot_data=get_lineplotdata(),
     )
-
 
 if __name__ == "__main__":
     app.run(debug=True)

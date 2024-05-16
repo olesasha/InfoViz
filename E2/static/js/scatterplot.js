@@ -1,15 +1,14 @@
-import { highlightColumn, removeHighlights } from './heatmap.js'
-import { setTeam} from "./lineplot.js";
-export { highlightDot, removeDotHighlight, colorDots, init_scatterplot}
+import { highlightColumn, removeHighlights } from "./heatmap.js"
+import { setTeam } from "./lineplot.js"
+export { highlightDot, removeDotHighlight, colorDots, init_scatterplot }
 
 
-function init_scatterplot(scatterplot_data){
-  console.log("scatterplot_data")
+function init_scatterplot(scatterplot_data) {
   render_scatterplot(scatterplot_data)
-
 }
 
-function render_scatterplot(scatterplot_data){
+function render_scatterplot(scatterplot_data) {
+
   // set the dimensions and margins of the graph
   var margin = { top: 50, right: 50, bottom: 100, left: 50 },
     width = 500 - margin.left - margin.right,
@@ -41,14 +40,14 @@ function render_scatterplot(scatterplot_data){
   svg.append("g")
   //.call(d3.axisLeft(y)) //uncomment to show y axis
 
-  d3.select('body')
-    .append('div')
-    .attr('id', 'tooltip_scatter_plot')
+  d3.select("body")
+    .append("div")
+    .attr("id", "tooltip_scatter_plot")
     .attr("class", "style_tooltip")
 
   function drawData(data) {
 
-    svg.append('g')
+    svg.append("g")
       .selectAll("dot")
       .data(data)
       .enter()
@@ -60,21 +59,25 @@ function render_scatterplot(scatterplot_data){
       .style("fill", "#42be65")
       .on("mouseover", function (_, d) {
         highlightColumn(d["Team Name"])
-        d3.select('#tooltip_scatter_plot').style('visibility',"visible").text(d["Team Name"])
-        setTeam(d["Team Name"]);
-        
+        setTeam(d["Team Name"])
+        // Show tooltip and display text
+        d3.select("#tooltip_scatter_plot").style("visibility", "visible").text(d["Team Name"])
+
       })
-      .on("mousemove",function(event){
-        d3.select('#tooltip_scatter_plot')
-        .style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY - 10) + 'px')
+      .on("mousemove", function (event) {
+        d3.select("#tooltip_scatter_plot")
+
+          // Move tooltip
+          .style("left", (event.pageX + 10) + "px")
+          .style("top", (event.pageY - 10) + "px")
       })
-      .on("mouseout", function () { 
+      .on("mouseout", function () {
         removeHighlights()
-        d3.select('#tooltip_scatter_plot').style('visibility', "hidden")       
+
+        // Hide tooltip
+        d3.select("#tooltip_scatter_plot").style("visibility", "hidden")
       })
   }
-
   drawData(scatterplot_data)
 }
 
@@ -83,7 +86,7 @@ function highlightDot(teamName) {
   var svg = d3.select("#scatterplot").select("g")
 
   var selected_dot = svg.selectAll("circle.pca_dot")
-    .filter(function (d) { return d['Team Name'] === teamName })
+    .filter(function (d) { return d["Team Name"] === teamName })
 
   selected_dot
     .style("stroke", "#da1e28")
@@ -95,24 +98,15 @@ function removeDotHighlight() {
   d3.selectAll("circle.is_highlighted")
     .style("stroke", "none")
     .classed("is_highlighted", false)
-
 }
 
 function colorDots(color_scale, stats_data) {
 
-
   d3.selectAll("circle.pca_dot")
     .style("fill", function (d) {
-
-      return color_scale(stats_data.find(data => data["Team Name"] === d["Team Name"]).value);
+      // Assinging every dot the color of the team in the heatmap
+      return color_scale(stats_data.find(data => data["Team Name"] === d["Team Name"]).value)
     })
     .classed("pca_dots_colored", true)
 
-}
-
-
-// TODO: Decide if this function should be included
-function removeColorDots() {
-  d3.selectAll("circle.pca_dots_colored")
-    .style("fill", "#42be65")
 }

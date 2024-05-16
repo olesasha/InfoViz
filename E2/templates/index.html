@@ -8,6 +8,7 @@
 </head>
 
 <body>
+
   <div class='title_div'>
     <h1 style="text-align: center;">NBA Data Exploration with D3</h1>
     <p style="text-align: center;">Oleksandra Kravchenko (11935050), Maximilian Laurent Heß (12347554)</p>
@@ -27,6 +28,7 @@
 
     <div class="bottom_row">
       <div id="lineplot">
+        <label for="selectButton" id="label_select_button">Indicator:</label>
         <select id="selectButton">
           <option selected="selected">--</option>
         </select>
@@ -34,7 +36,6 @@
     </div>
 
   </div>
-
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="module" src="../static/js/heatmap.js"></script>
@@ -48,7 +49,6 @@
     init_heatmap({{ heatmap_data | safe }})
     init_scatterplot({{ scatterplot_data| safe }})
     init_lineplot({{ lineplot_data| safe }})
-
   </script>
 </body>
 

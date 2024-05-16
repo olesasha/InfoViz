@@ -1,16 +1,14 @@
-import { highlightDot, removeDotHighlight, colorDots } from "./scatterplot.js";
-export { highlightColumn, highlightRow, removeHighlights, init_heatmap };
+import { highlightDot, removeDotHighlight, colorDots } from "./scatterplot.js"
+export { highlightColumn, highlightRow, removeHighlights, init_heatmap }
 
 
 function init_heatmap(heatmap_data) {
-  console.log('heatmap initialised')
   render_heatmap(heatmap_data)
 }
 
-
 var margin = { top: 20, right: 50, bottom: 100, left: 150 },
   width = 700 - margin.left - margin.right,
-  height = 570 - margin.top - margin.bottom;
+  height = 570 - margin.top - margin.bottom
 
 
 function render_heatmap(heatmap_data) {
@@ -50,11 +48,9 @@ function render_heatmap(heatmap_data) {
     .call(d3.axisLeft(y)
       .tickSizeOuter(0))
 
-
-
-  d3.select('body')
-    .append('div')
-    .attr('id', 'tooltip')
+  d3.select("body")
+    .append("div")
+    .attr("id", "tooltip")
     .attr("class", "style_tooltip")
 
   d3.select("#tooltip")
@@ -66,32 +62,33 @@ function render_heatmap(heatmap_data) {
     .attr("id", "tooltip_metric")
 
   // Build color scale
-  var colorScales = {};
+  var colorScales = {}
   parameters.forEach(param => {
-    let min_colorscale = d3.min(heatmap_data.filter(d => d['metric'] === param), d => d["value"])
-    let max_colorscale = d3.max(heatmap_data.filter(d => d['metric'] === param), d => d["value"])
+    let min_colorscale = d3.min(heatmap_data.filter(d => d["metric"] === param), d => d["value"])
+    let max_colorscale = d3.max(heatmap_data.filter(d => d["metric"] === param), d => d["value"])
     colorScales[param] = d3.scaleLinear()
       .domain([min_colorscale, max_colorscale])
-      .range(["#defbe6", '#198038']);
+      .range(["#defbe6", "#198038"])
   })
 
 
-  //Read the data
   function drawData(data) {
 
     svg.selectAll("rect")
-      .data(data, function (d) { return d['Team Name'] + ':' + d["metric"]; })
+      .data(data, function (d) { return d["Team Name"] + ":" + d["metric"] })
       .enter()
       .append("rect")
-      .attr("x", function (d) { return x(d['Team Name']) })
+      .attr("x", function (d) { return x(d["Team Name"]) })
       .attr("y", function (d) { return y(d["metric"]) })
       .attr("width", x.bandwidth())
       .attr("height", y.bandwidth())
       .attr("class", "square")
       .attr("rx", 2)
       .attr("ry", 2)
+      .style("fill", function (d) { return colorScales[d["metric"]](d["value"]) })
       .on("mouseover", function (_, d) {
         highlightDot(d["Team Name"])
+        //  filter the data to only send the relevant data to the colorDots function
         let filtered_data = heatmap_data.filter(function (data) { return data.metric === d["metric"] })
         colorDots(colorScales[d["metric"]], filtered_data)
         showInfoToolTip(d["Team Name"], d["metric"], d["value"])
@@ -100,13 +97,12 @@ function render_heatmap(heatmap_data) {
         removeDotHighlight()
         removeHighlights()
       })
-      .on('mousemove', function (event) {
+      .on("mousemove", function (event) {
         moveToolTip(event)
       })
 
-      .style("fill", function (d) { return colorScales[d["metric"]](d["value"]) })
   }
-  drawData(heatmap_data);
+  drawData(heatmap_data)
 
 }
 
@@ -116,16 +112,15 @@ function render_heatmap(heatmap_data) {
 function highlightColumn(teamName) {
 
   // Select the heatmap SVG
-  var svg = d3.select("#heatmap").select("g");
+  var svg = d3.select("#heatmap").select("g")
 
   // Filter the rectangles to find those associated with the given teamName
   var rect_to_border = svg.selectAll("rect.square")
-    .filter(function (d) { return d['Team Name'] === teamName; });
+    .filter(function (d) { return d["Team Name"] === teamName })
 
   // Get the x coordinate of the first rectangle and calculate the total height
-  var x = +rect_to_border.attr("x");
-  var y = +rect_to_border.attr("y");
-  var width_box = +rect_to_border.attr("width");
+  var x = rect_to_border.attr("x")
+  var width_box = rect_to_border.attr("width")
 
   svg.append("rect")
     .attr("x", x)
@@ -154,7 +149,7 @@ function removeHighlights() {
     .style("font-size", "100%")
     .classed("bold_tick", false)
 
-  d3.select('#tooltip').style('visibility', "hidden")
+  d3.select("#tooltip").style("visibility", "hidden")
 
 }
 
@@ -162,15 +157,15 @@ function removeHighlights() {
 function highlightRow(metric) {
 
   // Select the heatmap SVG
-  var svg = d3.select("#heatmap").select("g");
+  var svg = d3.select("#heatmap").select("g")
 
   // Filter the rectangles to find those associated with the given teamName
   var rect_to_border = svg.selectAll("rect.square")
-    .filter(function (d) { return d["metric"] === metric; });
+    .filter(function (d) { return d["metric"] === metric })
 
   // Get the x coordinate of the first rectangle and calculate the total height
-  var y = +rect_to_border.attr("y");
-  var height_box = +rect_to_border.attr("height");
+  var y = rect_to_border.attr("y")
+  var height_box = rect_to_border.attr("height")
 
   svg.append("rect")
     .attr("x", 0)
@@ -194,20 +189,18 @@ function highlightRow(metric) {
 
 
 function showInfoToolTip(teamName, metric, value) {
-  var svg = d3.select("#heatmap").select("g");
   highlightColumn(teamName)
   highlightRow(metric)
   let text_metric = `${metric}: ${value}`
-  //d3.select('#tooltip').style('opacity', 0.8).text(text_tooltip)
-  d3.select('#tooltip').style('visibility', "visible")
+  d3.select("#tooltip").style("visibility", "visible")
   d3.select("#tooltip_team_name").text(teamName)
   d3.select("#tooltip_metric").text(text_metric)
 }
 
 
 function moveToolTip(event) {
-  d3.select('#tooltip')
-    .style('left', (event.pageX + 10) + 'px')
-    .style('top', (event.pageY - 15) + 'px')
+  d3.select("#tooltip")
+    .style("left", (event.pageX + 10) + "px")
+    .style("top", (event.pageY - 15) + "px")
 }
 

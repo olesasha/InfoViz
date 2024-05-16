@@ -1,12 +1,11 @@
-body{
+body {
     font-family: sans-serif;
 }
 
 .plot-container {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px; 
-
+    gap: 10px;
 }
 
 .upper_row {
@@ -15,16 +14,15 @@ body{
 }
 
 .bottom_row {
-    grid-column: 1 / span 2; /* This spans the div across both columns */
-    justify-self: center; /* Centers the div horizontally */
-    text-align: center;
+    grid-column: 1 / span 2;
+    justify-self: center;
     padding: 20px;
-  }
+}
 
-  .title{
+.title {
     font-family: sans-serif;
     font-weight: bold;
-  }
+}
 
 .style_tooltip {
     position: absolute;
@@ -50,8 +48,6 @@ body{
     border-radius: 5px;
 }
 
-
-/* TODO: Decide if tooltip should be adjusted for the scatterplot */
 #tooltip_scatter_plot {
     background-color: white;
     opacity: 0.8;
@@ -66,11 +62,6 @@ body{
     height: 450px;
 }
 
-#selectButton {
-    position: absolute;
-    top: 10px;
-    left: 50px;
-    z-index: 10;
+#label_select_button {
+    margin-right: 0.5em;
 }
-
-
