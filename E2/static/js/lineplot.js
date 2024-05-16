@@ -10,7 +10,7 @@ var x
 var selectedTeam = null
 var selectedMetric = null
 
-var margin = { top: 60, right: 60, bottom: 100, left: 120 },
+var margin = { top: 100, right:  50, bottom: 50, left: 50 },
     width = 1000 - margin.left - margin.right,
     height = 450 - margin.top - margin.bottom;
 
@@ -19,10 +19,8 @@ function init_lineplot(lineplot_data) {
     render_lineplot(lineplot_data)
     global_lineplot_data = lineplot_data
     setMetric()
-    // TODO: Decide what should be the default state. If by default the plot should be empty remove this line
-    updateSelect()
-}
 
+}
 
 function render_lineplot(lineplot_data) {
 
@@ -94,6 +92,12 @@ function render_lineplot(lineplot_data) {
         .attr("stroke", "none")
         .style("stroke-width", 2)
         .style("fill", "none")
+
+    svg.select(".title")
+        .attr("x", (width / 2))
+        .attr("y", 0 - (margin.top / 2 - 13))
+        .attr("text-anchor", "middle")
+        .text("Select metric and hover over a team in the scatterplot");
 }
 
 
@@ -140,12 +144,12 @@ function updateSelect() {
         .tickSizeOuter(0));
 
     svg.select(".title")
-        .attr("x", (width / 2))
-        .attr("y", 0 - (margin.top / 2 - 13))
-        .attr("text-anchor", "middle")
-        .style("font-size", "16px")
-        .attr("font-family", "sans-serif")
         .text(selectedMetric + " for team " + selectedTeam);
+
+    if (selectedMetric == "--"){
+        svg.select(".title")
+        .text("Select metric and hover over a team in the scatterplot");
+    }
 
     // Give these new data to update line
     line

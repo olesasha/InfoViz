@@ -11,9 +11,9 @@ function init_scatterplot(scatterplot_data){
 
 function render_scatterplot(scatterplot_data){
   // set the dimensions and margins of the graph
-  var margin = { top: 40, right: 60, bottom: 100, left: 120 },
-    width = 700 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom
+  var margin = { top: 50, right: 50, bottom: 100, left: 50 },
+    width = 500 - margin.left - margin.right,
+    height = 550 - margin.top - margin.bottom
 
   // append the svg object to the body of the page
   let svg = d3.select("#scatterplot")
@@ -23,14 +23,6 @@ function render_scatterplot(scatterplot_data){
     .append("g")
     .attr("transform",
       "translate(" + margin.left + "," + margin.top + ")")
-  
-    svg.append("text")
-      .attr("x", (width / 2))
-      .attr("y", 0 - (margin.top - 12))
-      .attr("text-anchor", "middle")
-      .style("font-size", "16px")
-      .attr("font-family", "sans-serif")
-      .text("Principle Component Analysis for the NBA teams");
 
   // Add X axis
   var x = d3.scaleLinear()

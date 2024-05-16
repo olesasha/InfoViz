@@ -2,37 +2,43 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>NBA Data Analytics</title>
-    <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='styles/style.css')}}">
-  </head>
+  <meta charset="UTF-8">
+  <title>NBA Data Analytics</title>
+  <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='styles/style.css')}}">
+</head>
 
 <body>
   <div class='title_div'>
-    <h1>NBA Data Exploration with D3</h1>
-    <p>Maximilian Laurent Heß (12347554), Oleksandra Kravchenko (11935050)</p>
-</div>
+    <h1 style="text-align: center;">NBA Data Exploration with D3</h1>
+    <p style="text-align: center;">Oleksandra Kravchenko (11935050), Maximilian Laurent Heß (12347554)</p>
+  </div>
   <div class="plot-container">
-    <div  id="heatmap" class="group_1"></div>
-    <div  id="scatterplot" class="group_1"></div>
-    <div  id="lineplot">
-      <select id="selectButton"></select>
+    <div id="heatmap" class="upper_row">
+      <span class="title" style="margin-left: 100px;">Metrics per team</span>
+    </div>
+    <div id="scatterplot" class="upper_row">
+      <span class="title">Principle Component Analysis for the NBA teams</span>
+    </div>
+    <div id="lineplot" class="bottom_row">
+      <select id="selectButton">
+        <option selected="selected">--</option>
+      </select>
     </div>
   </div>
-  
 
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script type="module" src="../static/js/heatmap.js"></script>
-    <script type="module" src="../static/js/scatterplot.js"></script>
-    <script type="module" src="../static/js/lineplot.js"></script>
 
-    <script type="module">
-      import {init_heatmap} from "../static/js/heatmap.js"
-      import {init_scatterplot} from "../static/js/scatterplot.js"
-      import {init_lineplot} from "../static/js/lineplot.js"
-      init_heatmap({{ heatmap_data | safe }})
-      init_scatterplot({{scatterplot_data| safe }})
-      init_lineplot({{lineplot_data| safe }})
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script type="module" src="../static/js/heatmap.js"></script>
+  <script type="module" src="../static/js/scatterplot.js"></script>
+  <script type="module" src="../static/js/lineplot.js"></script>
+
+  <script type="module">
+    import { init_heatmap } from "../static/js/heatmap.js"
+    import { init_scatterplot } from "../static/js/scatterplot.js"
+    import { init_lineplot } from "../static/js/lineplot.js"
+    init_heatmap({{ heatmap_data | safe }})
+    init_scatterplot({{ scatterplot_data| safe }})
+    init_lineplot({{ lineplot_data| safe }})
 
   </script>
 </body>

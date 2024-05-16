@@ -8,9 +8,9 @@ function init_heatmap(heatmap_data) {
 }
 
 
-var margin = { top: 100, right: 50, bottom: 120, left: 150 },
+var margin = { top: 20, right: 50, bottom: 100, left: 150 },
   width = 700 - margin.left - margin.right,
-  height = 650 - margin.top - margin.bottom;
+  height = 570 - margin.top - margin.bottom;
 
 
 function render_heatmap(heatmap_data) {
@@ -22,14 +22,6 @@ function render_heatmap(heatmap_data) {
     .append("g")
     .attr("transform",
       "translate(" + margin.left + "," + margin.top + ")")
-
-  svg.append("text")
-    .attr("x", (width / 2))
-    .attr("y", 0 - (margin.top / 2 - 13))
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .attr("font-family", "sans-serif")
-    .text("Average metrics per team");
 
   // Labels of row and columns
   var parameters = new Set(d3.map(heatmap_data, (d) => d["metric"]))

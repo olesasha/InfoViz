@@ -1,12 +1,32 @@
-.plot-container{
-    white-space: nowrap;
+body{
+    font-family: sans-serif;
 }
 
-.group_1{
-    display: inline;
+.plot-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px; 
+
 }
 
-.style_tooltip{
+.upper_row {
+    padding: 20px;
+    text-align: center;
+}
+
+.bottom_row {
+    grid-column: 1 / span 2; /* This spans the div across both columns */
+    justify-self: center; /* Centers the div horizontally */
+    text-align: center;
+    padding: 20px;
+  }
+
+  .title{
+    font-family: sans-serif;
+    font-weight: bold;
+  }
+
+.style_tooltip {
     position: absolute;
     visibility: hidden;
     border-radius: 5px;
@@ -15,12 +35,12 @@
     font-size: 50%;
 }
 
-#tooltip_team_name{
-     font-weight: bold;
-     margin-bottom: 6px;
+#tooltip_team_name {
+    font-weight: bold;
+    margin-bottom: 6px;
 }
 
-#tooltip{
+#tooltip {
     background-color: black;
     opacity: 0.8;
     color: white;
@@ -32,7 +52,7 @@
 
 
 /* TODO: Decide if tooltip should be adjusted for the scatterplot */
-#tooltip_scatter_plot{
+#tooltip_scatter_plot {
     background-color: white;
     opacity: 0.8;
     color: black;
@@ -41,14 +61,16 @@
 }
 
 #lineplot {
-    position: relative;  
-    width: 1000px;  
-    height: 450px; 
+    position: relative;
+    width: 1000px;
+    height: 450px;
 }
 
 #selectButton {
     position: absolute;
-    top: 10px;  
-    left: 50px;  
-    z-index: 10;  
+    top: 10px;
+    left: 50px;
+    z-index: 10;
 }
+
+
