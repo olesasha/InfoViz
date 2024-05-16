@@ -22,9 +22,19 @@
   
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script type="module" src="{{ url_for('static', filename='heatmap.js') }}"></script>
-    <script type="module" src="{{ url_for('static', filename='scatterplot.js') }}"></script>
-    <script type="module" src="{{ url_for('static', filename='lineplot.js') }}"></script>
+    <script type="module" src="../static/js/heatmap.js"></script>
+    <script type="module" src="../static/js/scatterplot.js"></script>
+    <script type="module" src="../static/js/lineplot.js"></script>
+
+    <script type="module">
+      import {init_heatmap} from "../static/js/heatmap.js"
+      import {init_scatterplot} from "../static/js/scatterplot.js"
+      import {init_lineplot} from "../static/js/lineplot.js"
+      init_heatmap({{ heatmap_data | safe }})
+      init_scatterplot({{scatterplot_data| safe }})
+      init_lineplot({{lineplot_data| safe }})
+
+  </script>
 </body>
 
 </html>

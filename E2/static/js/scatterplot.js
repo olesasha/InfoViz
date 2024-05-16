@@ -1,13 +1,15 @@
 import { highlightColumn, removeHighlights } from './heatmap.js'
-//import { setTeam} from "./lineplot.js";
-export { highlightDot, removeDotHighlight, colorDots }
+import { setTeam} from "./lineplot.js";
+export { highlightDot, removeDotHighlight, colorDots, init_scatterplot}
 
 
-d3.json("/scatterplot_data").then(function (scatterplot_data) {
-  // Data processing and visualization code here
-  var graphData = scatterplot_data
+function init_scatterplot(scatterplot_data){
+  console.log("scatterplot_data")
+  render_scatterplot(scatterplot_data)
 
+}
 
+function render_scatterplot(scatterplot_data){
   // set the dimensions and margins of the graph
   var margin = { top: 60, right: 60, bottom: 100, left: 120 },
     width = 700 - margin.left - margin.right,
@@ -67,6 +69,8 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
       .on("mouseover", function (_, d) {
         highlightColumn(d["Team Name"])
         d3.select('#tooltip_scatter_plot').style('visibility',"visible").text(d["Team Name"])
+        setTeam(d["Team Name"]);
+        
       })
       .on("mousemove",function(event){
         d3.select('#tooltip_scatter_plot')
@@ -79,8 +83,8 @@ d3.json("/scatterplot_data").then(function (scatterplot_data) {
       })
   }
 
-  drawData(graphData)
-})
+  drawData(scatterplot_data)
+}
 
 function highlightDot(teamName) {
 
@@ -93,8 +97,6 @@ function highlightDot(teamName) {
     .style("stroke", "#da1e28")
     .style("stroke-width", 2)
     .classed("is_highlighted", true)
-
-   // setTeam(teamName);
 }
 
 function removeDotHighlight() {
