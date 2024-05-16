@@ -63,7 +63,6 @@ def get_lineplotdata():
             "position",
             "games_started",
             "full_name",
-            # "birth_place",
             "current_team_id",
         ]
     )
@@ -104,6 +103,9 @@ def get_lineplotdata():
         .reset_index()
     )
 
+    team_summary['total_games'] = team_summary.groupby(['team_name'])['total_games'].cumsum()
+    team_summary['minutes_played'] = team_summary.groupby(['team_name'])['minutes_played'].cumsum()
+    
     team_summary[["fg3p", "fg2p", "ftp"]] = team_summary[["fg3p", "fg2p", "ftp"]].apply(lambda x: round(x*100, 2))
     
     team_summary.columns = team_summary.columns.get_level_values(0)
