@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!-- header -->
 <head>
   <meta charset="UTF-8">
   <title>NBA Data Analytics</title>
@@ -14,18 +15,22 @@
     <p style="text-align: center;">Oleksandra Kravchenko (11935050), Maximilian Laurent Heß (12347554)</p>
   </div>
 
+  <!-- main container for the plots -->
   <div class="plot-container">
 
+  <!-- block for the heatmap -->
     <div class=" upper_row">
       <span class="title" style="margin-left: 100px;">Metrics per team</span>
       <div id="heatmap"></div>
     </div>
 
+  <!-- block for the scatterplot -->
     <div class="upper_row">
       <span class="title">Principle Component Analysis for the NBA teams</span>
       <div id="scatterplot"></div>
     </div>
 
+  <!-- block for the lineplot and select button -->
     <div class="bottom_row">
       <div id="lineplot">
         <label for="selectButton" id="label_select_button">Indicator:</label>
@@ -37,6 +42,7 @@
 
   </div>
 
+  <!-- sourcing and importing the javascript modules with the plots -->
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script type="module" src="../static/js/heatmap.js"></script>
   <script type="module" src="../static/js/scatterplot.js"></script>

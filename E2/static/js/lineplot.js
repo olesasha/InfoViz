@@ -1,3 +1,4 @@
+// import and export of the functions to enable dynamic interactions between plots
 export { setTeam, init_lineplot }
 
 // Declare global variables
@@ -44,7 +45,7 @@ function render_lineplot(lineplot_data) {
         .style("left", "10px")
 
     x = d3.scaleLinear()
-        .domain([1999, 2020])
+        .domain([1990, 2020])
         .range([0, width])
 
     svg.append("text")

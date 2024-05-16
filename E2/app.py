@@ -5,50 +5,56 @@ import numpy as np
 
 app = Flask(__name__)
 
+# prevent caching the elements in the browser
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+# show changes without restarting the Flask server
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
-def get_heatmapdata():
+def get_heatmapdata(): 
     
-    # Drop columns which do not make sense in a heatmap
+    # drop columns which do not make sense in a heatmap
     df_agg_team = pd.read_csv("./static/data/df_agg_team.csv").drop(
         columns=["Unnamed: 0", "Team ID"]
     )
 
-    # Get rid off the "Team" retired as is heavily influences the coloring of the heatmap for some columns
+    # remove the category "retired" because it not a team 
     df_agg_team = df_agg_team[df_agg_team["Team Name"] != "retired"]
 
+    # transform the data from wide format to long and convert to json to satisfy the D3 heatmap requirements
     heatmap_data = pd.melt(df_agg_team, id_vars=["Team Name"], var_name="metric")
     heatmap_data = heatmap_data.to_json(orient="records")
+    
     return heatmap_data
 
 
 def get_scatterplot_data():
 
+    # drop the index columns
     df_agg_team = pd.read_csv("./static/data/df_agg_team.csv").drop(
         columns=["Unnamed: 0", "Team ID"]
     )
 
-    # Drop "retired" as it is not displayed in the heatmap
+    # remove "retired" because it is not a team
     df_agg_team = df_agg_team[df_agg_team["Team Name"] != "retired"]
 
 
-    # Calculate the pca
+    # set the index for the data frame to team and only select numerical values for PCA
     df_pca_team = df_agg_team.set_index("Team Name", drop=True)
     df_pca_team = df_pca_team.select_dtypes("number")
 
-    # Scale the data to the standard normal distribution
+    # scale the data to the standard normal distribution
     scaler = preprocessing.StandardScaler()
     scaled_team_data = scaler.fit_transform(df_pca_team)
 
+    # perform PCA with 2 components
     pca = decomposition.PCA(n_components=2)
     pca_team_data = pca.fit_transform(scaled_team_data)
 
+    # prepare the data for the scatterplot by resetting the index and renaming the component columns
     df_pca_team_components = pd.DataFrame(
         pca_team_data, index=df_pca_team.index, columns=["x", "y"]
     ).reset_index()
-
     scatterplot_data = df_pca_team_components.to_json(orient="records")
 
     return scatterplot_data
@@ -56,8 +62,7 @@ def get_scatterplot_data():
 
 def get_lineplotdata():
 
-    # Drop columns which are not in the heatmap
-
+    # drop the columns irrelevant for the lineplot
     df_cleaned_player_stats = pd.read_csv(
         "./static/data/cleaned_df_player_stats.csv"
     ).drop(
@@ -76,7 +81,7 @@ def get_lineplotdata():
         ]
     )
 
-    # dictionary to specify the aggregation function for each column
+    # specify the aggregation function for each column
     dict_agg = {
         "name": [lambda x: len(np.unique(x))],
         "weight": ["mean"],
@@ -104,20 +109,22 @@ def get_lineplotdata():
         "pts": ["mean"],
     }
 
+    # removed observations for retired players to match the teams data
     df_cleaned_player_stats = df_cleaned_player_stats[
         df_cleaned_player_stats["team_name"] != "retired"
     ]
 
+    # aggregate the data by team name and season
     team_summary = (
         df_cleaned_player_stats.groupby(["team_name", "season"])
         .agg(dict_agg)
         .reset_index()
     )
 
-    # Important: Drop the newly created additonal column names. as these lead to failure of the following functions
+    # important: drop the newly created additonal levels as these lead to failure of the following functions
     team_summary.columns = team_summary.columns.get_level_values(0)
 
-    # Calculate the cummulative sum of the games and minutes played as this value is used in the heatmap
+    #  calculate the cummulative sum of the total games and minutes played (this value is also used in the heatmap)
     team_summary["total_games"] = team_summary.groupby(["team_name"])[
         "total_games"
     ].cumsum()
@@ -126,14 +133,12 @@ def get_lineplotdata():
         "minutes_played"
     ].cumsum()
 
-    # Convert the metrics to percentages
+    # convert the metrics to percentages
     team_summary[["fg3p", "fg2p", "ftp"]] = team_summary[["fg3p", "fg2p", "ftp"]].apply(
         lambda x: round(x * 100, 2)
     )
 
-
-    # Rename the columns for higher clarity
-    
+    # rename the columns for easier metric selection 
     team_summary = team_summary.rename(
         columns={
             "name": "Number of players",
@@ -163,24 +168,30 @@ def get_lineplotdata():
         }
     )
 
+    # format seasons as years like "1997-98" -> "1998" and "1999-00" -> "2000"
     team_summary["year"] = team_summary["season"].str.split("-").str[1]
     team_summary["year"] = team_summary["year"].astype(int)
     team_summary["year"] = team_summary["year"].apply(
         lambda x: 1900 + x if x > 2024 % 100 else 2000 + x
     )
-    team_summary.drop(columns=["season"], inplace=True)
+    team_summary.drop(columns=["season"], inplace=True) # drop the old column season
 
+    # rearrange the columns
     cols_to_move = ["team_name", "year"]
     team_summary = team_summary[
         cols_to_move + [col for col in team_summary.columns if col not in cols_to_move]
     ]
 
-    # Convert DataFrame to JSON and return
+    # convert data to json
     lineplot_data = team_summary.to_json(orient="records")
     return lineplot_data
 
 
+# the route leads to the main and the only page we are using for the project
 @app.route("/")
+
+# define the index function which will render the html file
+# the function fetches the data on the server using the getter functions defined above
 def index():
 
     return render_template(
@@ -190,5 +201,6 @@ def index():
         lineplot_data=get_lineplotdata(),
     )
 
+# initiate the server in debug mode
 if __name__ == "__main__":
     app.run(debug=True)
