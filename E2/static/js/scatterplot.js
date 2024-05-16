@@ -11,7 +11,7 @@ function init_scatterplot(scatterplot_data){
 
 function render_scatterplot(scatterplot_data){
   // set the dimensions and margins of the graph
-  var margin = { top: 60, right: 60, bottom: 100, left: 120 },
+  var margin = { top: 40, right: 60, bottom: 100, left: 120 },
     width = 700 - margin.left - margin.right,
     height = 600 - margin.top - margin.bottom
 
@@ -26,11 +26,11 @@ function render_scatterplot(scatterplot_data){
   
     svg.append("text")
       .attr("x", (width / 2))
-      .attr("y", 0 - (margin.top/2))
+      .attr("y", 0 - (margin.top -13))
       .attr("text-anchor", "middle")
       .style("font-size", "16px")
       .attr("font-family", "sans-serif")
-      .text("PCA colored for variable X");
+      .text("Principle Component Analysis for the NBA teams");
 
   // Add X axis
   var x = d3.scaleLinear()

@@ -104,9 +104,35 @@ def get_lineplotdata():
         .reset_index()
     )
 
+    team_summary[["fg3p", "fg2p", "ftp"]] = team_summary[["fg3p", "fg2p", "ftp"]].apply(lambda x: round(x*100, 2))
+    
     team_summary.columns = team_summary.columns.get_level_values(0)
 
-    team_summary = team_summary.rename(columns={"name": "Number of Players"})
+    team_summary = team_summary.rename(columns={"name": "Number of players",
+                                                "weight" : "Avg weight of a player in lbs",
+                                                "height": "Avg height of a player in inches",
+                                                "birth_place" : "Number of unique birth places",
+                                                "total_games": "Total Games",
+                                                "minutes_played": "Total minutes played",
+                                                "fg3": "Avg number of 3pt per player",
+                                                "fg2": "Avg number of 2pt per player",
+                                                "fg": "Avg number of field goals per player",
+                                                "fg3a": "Avg number of 3pt attempts per player",
+                                                "fg2a": "Avg number of 2pt attempts per player",
+                                                "fg3p": "Avg percent of successful 3pt per player",
+                                                "fg2p": "Avg percent of successful 2pt per player",
+                                                "ft": "Avg number of free throws per player",
+                                                "fta": "Avg number of free throw attempts per player",
+                                                "ftp": "Avg percent of successful free throws per player",
+                                                "orb": "Avg number of offensive rebounds per player",
+                                                "drb": "Avg number of defensive rebounds per player",
+                                                "trb": "Avg number of total rebounds per player",
+                                                "ast": "Avg number of assists per player",
+                                                "stl": "Avg number of steals per player",
+                                                "blk": "Avg number of blocks per player",
+                                                "tov": "Avg number of turonvers per player",
+                                                "pts": "Avg points per player"
+                                                })
 
     team_summary["year"] = team_summary["season"].str.split("-").str[1]
     team_summary["year"] = team_summary["year"].astype(int)

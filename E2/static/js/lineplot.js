@@ -24,7 +24,6 @@ function init_lineplot(lineplot_data) {
 }
 
 
-
 function render_lineplot(lineplot_data) {
 
 
@@ -65,6 +64,7 @@ function render_lineplot(lineplot_data) {
         .attr("class", "title")
 
     svg.append("g")
+        .attr("class", "xAxis")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x)
             .tickSizeOuter(0));
@@ -73,8 +73,6 @@ function render_lineplot(lineplot_data) {
     y = d3.scaleLinear()
         .domain(d3.extent(lineplot_data, function (d) { return +d.total_games; }))
         .range([height, 0]);
-
-    //var yAxis = d3.axisLeft().scale(y);
 
     svg.append("g")
         .attr("class", "yAxis")
@@ -97,7 +95,6 @@ function render_lineplot(lineplot_data) {
 }
 
 
-
 function setTeam(teamName) {
     selectedTeam = teamName
     updateSelect();
@@ -118,17 +115,19 @@ function updateSelect() {
         selectedTeam = "Atlanta Hawks"; //default
     }
     if (selectedMetric === null) {
-        selectedMetric = "Number of Players"; //default
+        selectedMetric = "Number of players"; //default
     }
 
     var svg = d3.select("#lineplot").select("g")
 
     var dataFilter = global_lineplot_data.filter(function (d) {
         return d["team_name"] === selectedTeam;
-    }).map(function (d) {
-        return { year: d["year"], value: +d[selectedMetric] };
+    }).map(function(d) {
+        return {
+            year: d["year"],
+            value: d3.format(".0f")(+d[selectedMetric]) 
+        };
     });
-
 
 
     y.domain(d3.extent(global_lineplot_data, function (d) { return +d[selectedMetric]; }))
@@ -140,7 +139,7 @@ function updateSelect() {
 
     svg.select(".title")
         .attr("x", (width / 2))
-        .attr("y", 0 - (margin.top / 2))
+        .attr("y", 0 - (margin.top / 2 - 13))
         .attr("text-anchor", "middle")
         .style("font-size", "16px")
         .attr("font-family", "sans-serif")
