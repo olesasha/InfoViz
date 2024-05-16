@@ -1,4 +1,3 @@
-import { highlightDot } from "./scatterplot.js";
 export { setTeam, init_lineplot }
 
 
@@ -121,7 +120,7 @@ function updateSelect() {
         selectedTeam = "Atlanta Hawks"; //default
     }
     if (selectedMetric === null) {
-        selectedMetric = "Number of players"; //default
+        selectedMetric = "--"; //default
     }
 
     var svg = d3.select("#lineplot").select("g")
