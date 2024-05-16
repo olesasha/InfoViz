@@ -1,7 +1,7 @@
 // import and export of the functions to enable dynamic interactions between plots
 export { setTeam, init_lineplot }
 
-// Declare global variables
+// declare global variables and defaults
 var global_lineplot_data
 var line
 var y
@@ -9,10 +9,12 @@ var x
 var selectedTeam = null
 var selectedMetric = "--"
 
+// set the dimensions and margins of the plot
 var margin = { top: 100, right: 50, bottom: 50, left: 50 },
     width = 1000 - margin.left - margin.right,
     height = 450 - margin.top - margin.bottom
 
+// initialize the lineplot using the lineplot data and the metric chosen by the select button 
 function init_lineplot(lineplot_data) {
     render_lineplot(lineplot_data)
     global_lineplot_data = lineplot_data
@@ -30,7 +32,7 @@ function render_lineplot(lineplot_data) {
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")")
 
-    // List of groups 
+    // list of the metrics to choose from 
     var allMetrics = Object.keys(lineplot_data[0]).slice(2)
 
     // add the options to the button
@@ -44,10 +46,12 @@ function render_lineplot(lineplot_data) {
         .style("top", "10px")
         .style("left", "10px")
 
+    // scale the x axis between the min and max year available in the data
     x = d3.scaleLinear()
         .domain([1990, 2020])
         .range([0, width])
 
+    // create the default title for the lineplot
     svg.append("text")
         .attr("class", "title")
         .attr("x", (width / 2))
@@ -55,24 +59,26 @@ function render_lineplot(lineplot_data) {
         .attr("text-anchor", "middle")
         .text("Select indicator and hover over a team in the scatterplot")
 
+    // append the x axis
     svg.append("g")
         .attr("class", "xAxis")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x)
             .tickSizeOuter(0)
-            .tickFormat(d3.format("d"))
+            .tickFormat(d3.format("d")) // format the years stores as integers to show like "2,000" -> "2000"
         )
 
-    // Add Y axis
+    // scale y axis
     y = d3.scaleLinear()
         .range([height, 0])
 
+    // append y axis
     svg.append("g")
         .attr("class", "yAxis")
         .call(d3.axisLeft(y)
             .tickSizeOuter(0))
 
-    // Initialize line
+    // initialize the line
     line = svg
         .append("g")
         .attr("class", "yAxis")
@@ -83,7 +89,7 @@ function render_lineplot(lineplot_data) {
         .style("fill", "none")
 }
 
-// function to set the global variable team
+// function to set the global variable team 
 function setTeam(teamName) {
     selectedTeam = teamName
     updateSelect()
@@ -97,13 +103,13 @@ function setMetric() {
     })
 }
 
-// function that update the chart
+// function that updates the chart
 function updateSelect() {
 
     var svg = d3.select("#lineplot").select("g")
 
     var dataFilter = global_lineplot_data.filter(function (d) {
-        return d["team_name"] === selectedTeam
+        return d["team_name"] === selectedTeam     // filter the data to only show the team that was selected on the scatterplot
     }).map(function (d) {
         return {
             year: d["year"],
@@ -111,30 +117,34 @@ function updateSelect() {
         }
     })
 
-
+    // adjust the y axis to the specific metric
     y.domain([0, d3.max(global_lineplot_data, function (d) { return d[selectedMetric] })])
         .range([height, 0])
 
+    // append the y axis
     svg.select(".yAxis")
-        .transition()
+        .transition()   // add transition for smooth change of the axis 
         .duration(300)
         .call(d3.axisLeft(y)
             .tickSizeOuter(0))
 
+    // adjust the x axis to show only the years that have available data for the team
     x.domain(d3.extent(dataFilter, function (d) { return d["year"] }))
 
+    // append the x axis
     svg.select(".xAxis")
-        .transition()
+        .transition()   // add transition for smooth change of the axis
         .duration(300)
         .call(d3.axisBottom(x)
             .tickSizeOuter(0)
-            .tickFormat(d3.format("d")))
+            .tickFormat(d3.format("d")))    // format the years
 
+    // adjust the title of the lineplot for the selected metric and team
     svg.select(".title")
         .text(selectedMetric + " for team " + selectedTeam)
 
 
-    // Dont display the chart if no team or metric is selected
+    // show an empty lineplot contained if no team or metric is selected
     if ((selectedMetric == "--") | (selectedTeam == null)) {
         
         svg.select(".title")
@@ -158,10 +168,10 @@ function updateSelect() {
                 .tickFormat(d3.format("d")))
     }
 
-    // Update the line
+    // update the line when another indicator or team is selected
     line
         .datum(dataFilter)
-        .transition()
+        .transition()   // transition for smooth line change
         .duration(300)
         .attr("d", d3.line()
             .x(function (d) { return x(d["year"]) })

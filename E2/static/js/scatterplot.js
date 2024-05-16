@@ -33,7 +33,7 @@ function render_scatterplot(scatterplot_data) {
     .attr("transform", "translate(0," + height + ")")
   //.call(d3.axisBottom(x)) //uncomment to show x axis
 
-  // Add Y axis
+  // add Y axis
   var y = d3.scaleLinear()
     .domain([d3.min(scatterplot_data, d => d.y),
     d3.max(scatterplot_data, d => d.y)])
