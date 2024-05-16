@@ -41,9 +41,9 @@
 }
 
 #lineplot {
-    position: relative;  /* Establishes a positioning context */
-    width: 1000px;  /* Width of your lineplot */
-    height: 450px;  /* Height of your lineplot */
+    position: relative;  
+    width: 1000px;  
+    height: 450px; 
 }
 
 #selectButton {

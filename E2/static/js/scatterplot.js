@@ -26,7 +26,7 @@ function render_scatterplot(scatterplot_data){
   
     svg.append("text")
       .attr("x", (width / 2))
-      .attr("y", 0 - (margin.top -13))
+      .attr("y", 0 - (margin.top - 12))
       .attr("text-anchor", "middle")
       .style("font-size", "16px")
       .attr("font-family", "sans-serif")

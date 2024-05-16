@@ -67,7 +67,9 @@ function render_lineplot(lineplot_data) {
         .attr("class", "xAxis")
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x)
-            .tickSizeOuter(0));
+        .tickSizeOuter(0)
+        .tickFormat(d3.format("d"))
+    );
 
     // Add Y axis
     y = d3.scaleLinear()
