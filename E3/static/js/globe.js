@@ -1,6 +1,3 @@
-import * as d3 from 'd3';
-import * as topojson from 'topojson-client';
-
 export { init_globe };
 
 function init_globe(globe_data) {
@@ -8,86 +5,84 @@ function init_globe(globe_data) {
 }
 
 function render_globe(globe_data) {
-    const width = 960;
-    const height = 500;
+
+    var width = 500
+    var height = 500
+    var sensitivity = 75
     const config = {
         speed: 0.005,
         verticalTilt: -30,
-        horizontalTilt: 0
-    };
-    let locations = [];
-    const svg = d3.select('svg')
-        .attr('width', width).attr('height', height);
-    const markerGroup = svg.append('g');
-    const projection = d3.geoOrthographic();
-    const initialScale = projection.scale();
-    const path = d3.geoPath().projection(projection);
-    const center = [width / 2, height / 2];
+        horizontalTilt: 0};
+    
+    var projection = d3.geoOrthographic()
+                    .scale(250)
+                    .center([0, 0])
+                    .rotate([0,-30])
+                    .translate([width / 2, height / 2])
+    
+    const initialScale = projection.scale()
+    var path = d3.geoPath().projection(projection)
 
-    drawGlobe();
-    drawGraticule();
-    enableRotation();
+    var svg = d3.select('#globe')
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
 
-    function drawGlobe() {
-        d3.queue()
-            .defer(d3.json, 'https://gist.githubusercontent.com/mbostock/4090846/raw/d534aba169207548a8a3d670c9c2cc719ff05c47/world-110m.json')
-            .defer(d3.json, globe_data)
-            .await((error, worldData, locationData) => {
-                if (error) throw error;
-
-                svg.selectAll(".segment")
-                    .data(topojson.feature(worldData, worldData.objects.countries).features)
-                    .enter().append("path")
-                    .attr("class", "segment")
-                    .attr("d", path)
-                    .style("stroke", "#888")
-                    .style("stroke-width", "1px")
-                    .style("fill", (d, i) => '#e5e5e5')
-                    .style("opacity", ".6");
-
-                locations = locationData;
-                drawMarkers();
-            });
-    }
-
-    function drawGraticule() {
-        const graticule = d3.geoGraticule()
-            .step([10, 10]);
-
-        svg.append("path")
-            .datum(graticule)
-            .attr("class", "graticule")
-            .attr("d", path)
-            .style("fill", "#fff")
-            .style("stroke", "#ccc");
-    }
-
-    function enableRotation() {
-        d3.timer(function (elapsed) {
-            projection.rotate([config.speed * elapsed - 120, config.verticalTilt, config.horizontalTilt]);
-            svg.selectAll("path").attr("d", path);
-            drawMarkers();
-        });
-    }
-
-    function drawMarkers() {
-        const markers = markerGroup.selectAll('circle')
-            .data(locations);
-        markers
-            .enter()
-            .append('circle')
-            .merge(markers)
-            .attr('cx', d => projection([d.longitude, d.latitude])[0])
-            .attr('cy', d => projection([d.longitude, d.latitude])[1])
-            .attr('fill', d => {
-                const coordinate = [d.longitude, d.latitude];
-                const gdistance = d3.geoDistance(coordinate, projection.invert(center));
-                return gdistance > 1.57 ? 'none' : 'steelblue';
-            })
-            .attr('r', 7);
-
-        markerGroup.each(function () {
-            this.parentNode.appendChild(this);
-        });
-    }
+    var globe = svg.append("circle")
+                    .attr("fill", "#EEE")
+                    .attr("stroke", "#000")
+                    .attr("stroke-width", "0.2")
+                    .attr("cx", width/2)
+                    .attr("cy", height/2)
+                    .attr("r", initialScale)
+    
+                    svg.call(d3.drag().on('drag', () => {
+                        const rotate = projection.rotate()
+                        const k = sensitivity / projection.scale()
+                        projection.rotate([
+                          rotate[0] + d3.event.dx * k,
+                          rotate[1] - d3.event.dy * k
+                        ])
+                        path = d3.geoPath().projection(projection)
+                        svg.selectAll("path").attr("d", path)
+                      }))
+                        .call(d3.zoom().on('zoom', () => {
+                          if(d3.event.transform.k > 0.3) {
+                            projection.scale(initialScale * d3.event.transform.k)
+                            path = d3.geoPath().projection(projection)
+                            svg.selectAll("path").attr("d", path)
+                            globe.attr("r", projection.scale())
+                          }
+                          else {
+                            d3.event.transform.k = 0.3
+                          }
+                        }))
+                    
+                      let map = svg.append("g")
+                    
+                      let data = globe_data
+                    
+                      map.append("g")
+                        .attr("class", "countries" )
+                        .selectAll("path")
+                        .data(data.features)
+                        .enter().append("path")
+                        .attr("class", d => "country_" + d.properties.name.replace(" ","_"))
+                        .attr("d", path)
+                        .attr("fill", "white")
+                        .style('stroke', 'black')
+                        .style('stroke-width', 0.3)
+                        .style("opacity",0.8)
+                    
+                      //Optional rotate
+                      d3.timer(function(elapsed) {
+                        const rotate = projection.rotate()
+                        const k = sensitivity / projection.scale()
+                        projection.rotate([
+                          rotate[0] - 1 * k,
+                          rotate[1]
+                        ])
+                        path = d3.geoPath().projection(projection)
+                        svg.selectAll("path").attr("d", path)
+                      },200)
 }
