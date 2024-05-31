@@ -74,8 +74,8 @@ function render_globe(globe_data) {
                         .style('stroke-width', 0.3)
                         .style("opacity",0.8)
                     
-                      //Optional rotate
-                      d3.timer(function(elapsed) {
+                      //rotate
+                      /*d3.timer(function(elapsed) {
                         const rotate = projection.rotate()
                         const k = sensitivity / projection.scale()
                         projection.rotate([
@@ -84,5 +84,5 @@ function render_globe(globe_data) {
                         ])
                         path = d3.geoPath().projection(projection)
                         svg.selectAll("path").attr("d", path)
-                      },200)
+                      },200)*/
 }

@@ -16,12 +16,8 @@
 <script type="module" src="../static/js/globe.js"></script>
 
 <script type="module">
-  document.addEventListener('DOMContentLoaded', function() {
     import { init_globe } from "../static/js/globe.js";
-
-    // Pass globe_data to init_globe only after the DOM is fully loaded
     init_globe({{ globe_data | safe }});
-  });
 </script>
 
 </body>
