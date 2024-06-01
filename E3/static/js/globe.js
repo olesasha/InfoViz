@@ -1,14 +1,14 @@
 export { init_globe };
 
-function init_globe(globe_data) {
-    render_globe(globe_data);
+function init_globe(globe_data, circuit_data) {
+    render_globe(globe_data, circuit_data);
 }
 
-function render_globe(globe_data) {
+function render_globe(globe_data, circuit_data) {
 
-    var width = 500
-    var height = 500
-    var sensitivity = 40    // dragging sens
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let sensitivity = 40    // dragging sens
     const config = {
         speed: 0.003,      // rotation speed
         verticalTilt: -30,
@@ -67,23 +67,39 @@ function render_globe(globe_data) {
         }))
                     
         let map = svg.append("g")
-    
-        let data = globe_data
+
+        let country_name = svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height - 20)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .style("fill", "black")
+        .style("visibility", "hidden");
     
         map.append("g")
         .attr("class", "countries" )
         .selectAll("path")
-        .data(data.features)
+        .data(globe_data.features)
         .enter().append("path")
         .attr("class", d => "country_" + d.properties.name.replace(" ","_"))
         .attr("d", path)
-        .attr("fill", "white")
+        .attr("fill", d => d.properties.name === "Italy" ? "#FF6961" : "white") // Set fill color based on country name
         .style('stroke', 'black')
         .style('stroke-width', 0.3)
         .style("opacity",0.8)
+        .on("mouseover", (event, d) => {
+            country_name.style("visibility", "visible").text(d.properties.name);
+        })
+        .on("mousemove", (event) => {
+            country_name.attr("x", event.pageX - svg.node().getBoundingClientRect().left)
+                       .attr("y", event.pageY - svg.node().getBoundingClientRect().top + 20);
+        })
+        .on("mouseout", () => {
+            country_name.style("visibility", "hidden");
+        });
                     
         //rotate
-        d3.timer(function(elapsed) {
+       /* d3.timer(function(elapsed) {
         const rotate = projection.rotate()
         const k = sensitivity / projection.scale()
         projection.rotate([
@@ -93,4 +109,5 @@ function render_globe(globe_data) {
         path = d3.geoPath().projection(projection)
         svg.selectAll("path").attr("d", path)
         },200)
+        */
 }
