@@ -1,93 +1,113 @@
-import * as d3 from 'd3';
-import * as topojson from 'topojson-client';
-
 export { init_globe };
 
-function init_globe(globe_data) {
-    render_globe(globe_data);
+function init_globe(globe_data, circuit_data) {
+    render_globe(globe_data, circuit_data);
 }
 
-function render_globe(globe_data) {
-    const width = 960;
-    const height = 500;
+function render_globe(globe_data, circuit_data) {
+
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let sensitivity = 40    // dragging sens
     const config = {
-        speed: 0.005,
+        speed: 0.003,      // rotation speed
         verticalTilt: -30,
-        horizontalTilt: 0
-    };
-    let locations = [];
-    const svg = d3.select('svg')
-        .attr('width', width).attr('height', height);
-    const markerGroup = svg.append('g');
-    const projection = d3.geoOrthographic();
-    const initialScale = projection.scale();
-    const path = d3.geoPath().projection(projection);
-    const center = [width / 2, height / 2];
+        horizontalTilt: 0};
+    
+    var projection = d3.geoOrthographic()
+                    .scale(250)
+                    .center([0, 0])
+                    .rotate([0,-30])
+                    .translate([width / 2, height / 2])
+    
+    const initialScale = projection.scale()
+    var path = d3.geoPath().projection(projection)
 
-    drawGlobe();
-    drawGraticule();
-    enableRotation();
+    var svg = d3.select('#globe')
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
 
-    function drawGlobe() {
-        d3.queue()
-            .defer(d3.json, 'https://gist.githubusercontent.com/mbostock/4090846/raw/d534aba169207548a8a3d670c9c2cc719ff05c47/world-110m.json')
-            .defer(d3.json, globe_data)
-            .await((error, worldData, locationData) => {
-                if (error) throw error;
+    var globe = svg.append("circle")
+                    .attr("fill", "#EEE")
+                    .attr("stroke", "#000")
+                    .attr("stroke-width", "0.2")
+                    .attr("cx", width/2)
+                    .attr("cy", height/2)
+                    .attr("r", initialScale)
+    
+    // dragging 
+    svg.call(d3.drag()
+    .on('drag', function(event) {
+        const rotate = projection.rotate();
+        // calculate the new rotation based on the drag distance
+        const k = sensitivity / projection.scale();
+        const newRotation = [
+            rotate[0] + event.dx * k, // update the longitude
+            rotate[1] - event.dy * k  // update the latitude
+        ];
+        projection.rotate(newRotation);
 
-                svg.selectAll(".segment")
-                    .data(topojson.feature(worldData, worldData.objects.countries).features)
-                    .enter().append("path")
-                    .attr("class", "segment")
-                    .attr("d", path)
-                    .style("stroke", "#888")
-                    .style("stroke-width", "1px")
-                    .style("fill", (d, i) => '#e5e5e5')
-                    .style("opacity", ".6");
 
-                locations = locationData;
-                drawMarkers();
-            });
-    }
+        path = d3.geoPath().projection(projection);
+        svg.selectAll("path").attr("d", path); // redraw all paths with the new projection
+        }))
+        .call(d3.zoom()
+        .scaleExtent([0.3, Infinity])
+        .on('zoom', function(event) {
+            // update the scale of the projection based on zoom level
+            if (event.transform.k > 0.3) {
+                projection.scale(initialScale * event.transform.k);
+                path = d3.geoPath().projection(projection);
+                svg.selectAll("path").attr("d", path); // redraw all paths with the new scale
+                globe.attr("r", projection.scale()); // update the globe's radius
+            } else {
+                event.transform.k = 0.3; // prevent zooming out too much
+            }
+        }))
+                    
+        let map = svg.append("g")
 
-    function drawGraticule() {
-        const graticule = d3.geoGraticule()
-            .step([10, 10]);
-
-        svg.append("path")
-            .datum(graticule)
-            .attr("class", "graticule")
-            .attr("d", path)
-            .style("fill", "#fff")
-            .style("stroke", "#ccc");
-    }
-
-    function enableRotation() {
-        d3.timer(function (elapsed) {
-            projection.rotate([config.speed * elapsed - 120, config.verticalTilt, config.horizontalTilt]);
-            svg.selectAll("path").attr("d", path);
-            drawMarkers();
+        let country_name = svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height - 20)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .style("fill", "black")
+        .style("visibility", "hidden");
+    
+        map.append("g")
+        .attr("class", "countries" )
+        .selectAll("path")
+        .data(globe_data.features)
+        .enter().append("path")
+        .attr("class", d => "country_" + d.properties.name.replace(" ","_"))
+        .attr("d", path)
+        .attr("fill", d => d.properties.name === "Italy" ? "#FF6961" : "white") // Set fill color based on country name
+        .style('stroke', 'black')
+        .style('stroke-width', 0.3)
+        .style("opacity",0.8)
+        .on("mouseover", (event, d) => {
+            country_name.style("visibility", "visible").text(d.properties.name);
+        })
+        .on("mousemove", (event) => {
+            country_name.attr("x", event.pageX - svg.node().getBoundingClientRect().left)
+                       .attr("y", event.pageY - svg.node().getBoundingClientRect().top + 20);
+        })
+        .on("mouseout", () => {
+            country_name.style("visibility", "hidden");
         });
-    }
-
-    function drawMarkers() {
-        const markers = markerGroup.selectAll('circle')
-            .data(locations);
-        markers
-            .enter()
-            .append('circle')
-            .merge(markers)
-            .attr('cx', d => projection([d.longitude, d.latitude])[0])
-            .attr('cy', d => projection([d.longitude, d.latitude])[1])
-            .attr('fill', d => {
-                const coordinate = [d.longitude, d.latitude];
-                const gdistance = d3.geoDistance(coordinate, projection.invert(center));
-                return gdistance > 1.57 ? 'none' : 'steelblue';
-            })
-            .attr('r', 7);
-
-        markerGroup.each(function () {
-            this.parentNode.appendChild(this);
-        });
-    }
+                    
+        //rotate
+       /* d3.timer(function(elapsed) {
+        const rotate = projection.rotate()
+        const k = sensitivity / projection.scale()
+        projection.rotate([
+            rotate[0] - 1 * k,
+            rotate[1]
+        ])
+        path = d3.geoPath().projection(projection)
+        svg.selectAll("path").attr("d", path)
+        },200)
+        */
 }
