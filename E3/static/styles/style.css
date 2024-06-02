@@ -14,6 +14,12 @@
 
 body {
     font-family: 'Formula1-Regular', sans-serif;
+
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 100vh; /* Use the full height of the viewport */
+    margin: 0; /* Remove default margin */
 }
 
 .title {
@@ -24,6 +30,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100vw;  /* Full viewport width */
-    height: 100vh; /* Full viewport height */
+    width: 80vw;  /*  viewport width */
+    height: 80vh; /*  viewport height */
 }

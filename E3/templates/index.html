@@ -23,8 +23,12 @@
 <script type="module" src="../static/js/globe.js"></script>
 
 <script type="module">
-    import { init_globe } from "../static/js/globe.js";
-    init_globe({{ globe_data | safe }});
+  import { init_globe } from "../static/js/globe.js";
+
+  const globe_data = {{ globe_data | safe }};
+  const circuit_data = {{ circuit_data | safe }};
+
+  init_globe(globe_data, circuit_data);
 </script>
 
 </body>

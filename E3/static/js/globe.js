@@ -6,6 +6,8 @@ function init_globe(globe_data, circuit_data) {
 
 function render_globe(globe_data, circuit_data) {
 
+    console.log(circuit_data)
+    
     let width = window.innerWidth;
     let height = window.innerHeight;
     let sensitivity = 40    // dragging sens
@@ -13,9 +15,11 @@ function render_globe(globe_data, circuit_data) {
         speed: 0.003,      // rotation speed
         verticalTilt: -30,
         horizontalTilt: 0};
+
+    const circuit_countries = new Set(circuit_data.map(globe_data => globe_data.country));    
     
     var projection = d3.geoOrthographic()
-                    .scale(250)
+                    .scale(500)
                     .center([0, 0])
                     .rotate([0,-30])
                     .translate([width / 2, height / 2])
@@ -83,7 +87,7 @@ function render_globe(globe_data, circuit_data) {
         .enter().append("path")
         .attr("class", d => "country_" + d.properties.name.replace(" ","_"))
         .attr("d", path)
-        .attr("fill", d => d.properties.name === "Italy" ? "#FF6961" : "white") // Set fill color based on country name
+        .attr("fill", d => circuit_countries.has(d.properties.name) ? "#FF6961" : "white")  // highlight the circuit countries
         .style('stroke', 'black')
         .style('stroke-width', 0.3)
         .style("opacity",0.8)

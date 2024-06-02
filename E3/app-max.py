@@ -8,7 +8,7 @@ import json
 app = Flask(__name__)
 
 # prevent caching the elements in the browser
-app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0       
 # show changes without restarting the Flask server
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
@@ -76,7 +76,8 @@ def dev_circuit_data():
 
 def dev_driver_pos():
     df_drivers = pd.read_parquet(
-        "/Users/max/Library/Mobile Documents/com~apple~CloudDocs/100 Hochschule/110 TU Wien/SoSe 24/InfoVis/InfoViz/E3/static/data/all_driver_pos.parquet"
+        "static/data/all_driver_pos.parquet"
+      #  "/Users/max/Library/Mobile Documents/com~apple~CloudDocs/100 Hochschule/110 TU Wien/SoSe 24/InfoVis/InfoViz/E3/static/data/all_driver_pos.parquet"
     )
 
     df_drivers = df_drivers.replace({"TSU": None}).dropna()

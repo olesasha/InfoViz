@@ -19,7 +19,8 @@ def get_world_data():
     return data
 
 def get_circuit_data():
-    data = ergast.get_circuits(season=2023, result_type='raw')  
+    data = ergast.get_circuits(season=2023, result_type='pandas')  
+    data = data.to_json(orient="records")
     return data
 
 # the route leads to the main and the only page we are using for the project
