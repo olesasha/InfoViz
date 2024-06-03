@@ -1,13 +1,13 @@
 @font-face {
     font-family: 'Formula1-Regular';
-    src: url('/static/fonts/Formula1-Regular.ttf') format('truetype');
+    src: url('/static/styles/fonts/Formula1-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
   }
   
   @font-face {
     font-family: 'Formula1-Bold';
-    src: url('/static/fonts/Formula1-Bold.ttf') format('truetype');
+    src: url('/static/styles/fonts/Formula1-Bold.ttf') format('truetype');
     font-weight: bold;
     font-style: normal;
   }
