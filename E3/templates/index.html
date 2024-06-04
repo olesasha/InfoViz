@@ -17,6 +17,9 @@
     <h1 style="text-align: center;">Formula 1 project</h1>
 </div>
 
+<!-- Dropdown container -->
+<div id="dropdown-container"></div>
+
 <div id="globe"></div>
 <!-- <div id="globe_tooltip"></div> -->
 
@@ -30,6 +33,19 @@
   const circuit_data = {{ circuit_data | safe }};
 
   init_globe(globe_data, circuit_data);
+
+  // update circuit data
+  function updateCircuitData(season) {
+    fetch(`/update_circuit_data/${season}`)
+        .then(response => response.json())
+        .then(data => {
+            // Update globe visualization with new data
+            init_globe(globe_data, data); // Pass data directly without parsing
+        })
+        .catch(error => {
+            console.error('Error updating circuit data:', error);
+        });
+}
 </script>
 
 </body>

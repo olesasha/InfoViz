@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import pandas as pd
 from sklearn import decomposition, preprocessing
 import numpy as np
@@ -18,22 +18,25 @@ def get_world_data():
         data = file.read()
     return data
 
-def get_circuit_data():
-    data = ergast.get_circuits(season=2023, result_type='pandas')  
+def get_circuit_data(season):
+    data = ergast.get_circuits(season=season, result_type='pandas')  
     data = data.to_json(orient="records")
     return data
+
+@app.route("/update_circuit_data/<int:season>")
+def update_circuit_data(season):
+    data = ergast.get_circuits(season=season, result_type='pandas')
+    return jsonify(data.to_dict(orient="records"))
+
 
 # the route leads to the main and the only page we are using for the project
 @app.route("/")
 # define the index function which will render the html file
 # the function fetches the data on the server using the getter functions defined above
 def index():
-
-    return render_template(
-        "index.html",
-        globe_data = get_world_data(),
-        circuit_data = get_circuit_data()
-    )
+    globe_data = get_world_data()
+    circuit_data = get_circuit_data(2023)  # Initial data for the default season
+    return render_template("index.html", globe_data=globe_data, circuit_data=circuit_data)
 
 # initiate the server in debug mode
 if __name__ == "__main__":

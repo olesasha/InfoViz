@@ -1,6 +1,7 @@
 // exports and imports for the module
 export { init_globe };
 
+
 // init function that is called by the backend at the start 
 function init_globe(globe_data, circuit_data) {
     render_globe(globe_data, circuit_data);
@@ -49,19 +50,6 @@ function render_globe(globe_data, circuit_data) {
                 .attr("width", GLOBE_WIDTH)
                 .attr("height", GLOBE_HEIGHT);
 
-    // add canvas for the dots
-    var globeCanvas = d3.select('#globe')
-        .append("canvas")
-        .attr("width", GLOBE_WIDTH)
-        .attr("height", GLOBE_HEIGHT)
-        .style("position", "absolute")
-        .style("z-index", 0)
-        .style("pointer-events", "none");
-
-    const globeDotsCanvas = globeCanvas.node().getContext("2d");
-
-    // convert geoJson data to svg path
-    const geoPathGenerator = d3.geoPath().projection(projection);
 
     // outline of the globe
     var globe = svg.append("circle")
@@ -136,9 +124,9 @@ function render_globe(globe_data, circuit_data) {
             .enter().append("circle")
             .attr("class", "pin")
             .attr("r", DOT_RADIUS)
-            .attr("fill", LOC_COLOR) // adjust color as needed
+            .attr("fill", LOC_COLOR) 
             .attr("transform", function(d) {
-                const coords = [d.long, d.lat]; // Adjust the property names according to your data
+                const coords = [d.long, d.lat]; 
                 const visibility = isInView(projection, coords) ? "visible" : "hidden";
                 return "translate(" + projection(coords) + ") scale(" + (visibility === "visible" ? 1 : 0) + ")";
             })
@@ -150,18 +138,52 @@ function render_globe(globe_data, circuit_data) {
             })
             .on("mouseout", function() {
                 globe_tooltip.style("display", "none");
-            });;
+            });
 
-        // Function to check if a point is within the visible area of the globe
-        function isInView(projection, coords) {
-            const [x, y] = projection(coords);
-            const [centerX, centerY] = projection.invert([GLOBE_WIDTH / 2, GLOBE_HEIGHT / 2]);
-        
-            const distance = d3.geoDistance(coords, [centerX, centerY]);
-            return distance <= Math.PI / 2 && x >= 0 && x <= GLOBE_WIDTH && y >= 0 && y <= GLOBE_HEIGHT;
+    // Function to check if a point is within the visible area of the globe
+    function isInView(projection, coords) {
+        const [x, y] = projection(coords);
+        const [centerX, centerY] = projection.invert([GLOBE_WIDTH / 2, GLOBE_HEIGHT / 2]);
+
+        const distance = d3.geoDistance(coords, [centerX, centerY]);
+        return distance <= Math.PI / 2 && x >= 0 && x <= GLOBE_WIDTH && y >= 0 && y <= GLOBE_HEIGHT;
     }
 
+    // dropdown function
+    function initDropdown() {
+        // Hardcoded years from 2018 to 2024
+        const years = Array.from({ length: 7 }, (_, index) => 2018 + index);
     
-}
+        const dropdown = d3.select("#dropdown-container")
+            .append("select")
+            .attr("id", "season-dropdown");
+    
+        dropdown.selectAll("option")
+            .data(years)
+            .enter().append("option")
+            .text(d => d)
+            .attr("value", d => d);
+    
+        // event listener for dropdown change
+        dropdown.on("change", function() {
+            const selectedYear = +this.value; // get the selected year 
+            updateData(selectedYear); //  update data based on selected year
+        });
+    }
 
-   
+    // Define a function to update data based on selected year
+    function updateData(selectedYear) {
+        d3.json(`/update_circuit_data/${selectedYear}`)
+            .then(function(circuit_data) {
+                console.log(circuit_data)
+
+                // Call a function to update globe visualization with new data
+                render_globe(globe_data, circuit_data);
+            })
+            .catch(function(error) {
+                console.error("Error updating data:", error);
+            });
+    }
+
+    initDropdown(circuit_data);
+}
