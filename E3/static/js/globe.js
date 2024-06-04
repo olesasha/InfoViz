@@ -9,7 +9,6 @@ function init_globe(globe_data, circuit_data) {
 // CONSTANTS
 // colors
 const GLOBE_FILL = "#EEE";
-const GLOBE_HOVER_FILL = "yellow";
 const COUNTRY_FILL = "#FF6961";
 const LOC_COLOR = "navy";
 
@@ -29,7 +28,7 @@ function render_globe(globe_data, circuit_data) {
     // mapping circuit location data to the world data
     const circuit_countries = new Set(circuit_data.map(data => data.country)); 
     // tooltip
-    const toolTip = d3.select("#tooltip")
+    const globe_tooltip = d3.select("#globe_tooltip")
     
     // init projection
     var projection = d3.geoOrthographic()       
@@ -83,17 +82,7 @@ function render_globe(globe_data, circuit_data) {
         .attr("fill", d => circuit_countries.has(d.properties.name) ? COUNTRY_FILL : "white")  // highlight the circuit countries
         .style('stroke', 'black')
         .style('stroke-width', 0.3)
-        .style("opacity",0.8)
-        .on("mouseover", (event, d) => {
-            country_name.style("visibility", "visible").text(d.properties.name);
-        })
-        .on("mousemove", (event) => {
-            country_name.attr("x", event.pageX - svg.node().getBoundingClientRect().left)
-                    .attr("y", event.pageY - svg.node().getBoundingClientRect().top + 20);
-        })
-        .on("mouseout", () => {
-            country_name.style("visibility", "hidden");
-        });
+        .style("opacity",0.8);
             
 
    svg.call(d3.drag()
@@ -102,7 +91,7 @@ function render_globe(globe_data, circuit_data) {
         // calculate the new rotation based on the drag distance
         const k = DRAG_SENSITIVITY / projection.scale();
         const newRotation = [
-            rotate[0] + event.dx * k * 1.2, // update the longitude
+            rotate[0] + event.dx * k , // update the longitude
             rotate[1] - event.dy * k  // update the latitude
         ];
         projection.rotate(newRotation);
@@ -149,7 +138,16 @@ function render_globe(globe_data, circuit_data) {
                 const coords = [d.long, d.lat]; // Adjust the property names according to your data
                 const visibility = isInView(projection, coords) ? "visible" : "hidden";
                 return "translate(" + projection(coords) + ") scale(" + (visibility === "visible" ? 1 : 0) + ")";
-            });
+            })
+            .on("mouseover", function(event, d) {
+                globe_tooltip.style("display", "block")
+                .html(`${d.circuitName}<br>${d.locality}, ${d.country}`)
+                    .style("left", (event.pageX + 5) + "px")
+                    .style("top", (event.pageY + 5) + "px");
+            })
+            .on("mouseout", function() {
+                globe_tooltip.style("display", "none");
+            });;
 
         // Function to check if a point is within the visible area of the globe
         function isInView(projection, coords) {
