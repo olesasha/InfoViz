@@ -82,13 +82,13 @@ function render_globe(globe_data, circuit_data) {
         // calculate the new rotation based on the drag distance
         const k = DRAG_SENSITIVITY / projection.scale();
         const newRotation = [
-            rotate[0] + event.dx * k , // update the longitude
+            rotate[0] + event.dx * k, // update the longitude
             rotate[1] - event.dy * k  // update the latitude
         ];
         projection.rotate(newRotation);
 
         // Update pins' positions and visibility
-        svg.selectAll(".pin")
+    svg.selectAll(".pin")
             .attr("transform", function(d) {
                 const coords = [d.long, d.lat];
                 const visibility = isInView(projection, coords) ? "visible" : "hidden";
@@ -151,8 +151,13 @@ function render_globe(globe_data, circuit_data) {
 
     // dropdown function
     function initDropdown() {
-        // Hardcoded years from 2018 to 2024
-        const years = Array.from({ length: 7 }, (_, index) => 2018 + index);
+        // generate dropdown if it is not there yet, otherwise update
+        const existingDropdown = d3.select("#dropdown-container").select("#season-dropdown");
+        if (!existingDropdown.empty()) {
+            return; 
+        }
+        // hardcoded years from 2019 to 2024
+        const years = Array.from({ length: 6 }, (_, index) => 2019 + index);
     
         const dropdown = d3.select("#dropdown-container")
             .append("select")
@@ -175,10 +180,9 @@ function render_globe(globe_data, circuit_data) {
     function updateData(selectedYear) {
         d3.json(`/update_circuit_data/${selectedYear}`)
             .then(function(circuit_data) {
-                console.log(circuit_data)
 
                 // Call a function to update globe visualization with new data
-                render_globe(globe_data, circuit_data);
+                updateGlobe(globe_data, circuit_data);
             })
             .catch(function(error) {
                 console.error("Error updating data:", error);
@@ -186,4 +190,11 @@ function render_globe(globe_data, circuit_data) {
     }
 
     initDropdown(circuit_data);
+
+    // function to overwrite the existing svg
+    function updateGlobe(globe_data, circuit_data) {
+    // remove existing elements from the svg
+    d3.select('#globe').selectAll("*").remove();
+    // re-render the globe with the new data
+    render_globe(globe_data, circuit_data);}
 }
