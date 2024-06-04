@@ -28,7 +28,10 @@ function render_globe(globe_data, circuit_data) {
     // mapping circuit location data to the world data
     const circuit_countries = new Set(circuit_data.map(data => data.country)); 
     // tooltip
-    const globe_tooltip = d3.select("#globe_tooltip")
+    const globe_tooltip = d3.select("body")
+        .append("div")
+        .attr("id", "globe_tooltip")
+        .attr("class", "tooltip");
     
     // init projection
     var projection = d3.geoOrthographic()       
@@ -141,7 +144,7 @@ function render_globe(globe_data, circuit_data) {
             })
             .on("mouseover", function(event, d) {
                 globe_tooltip.style("display", "block")
-                .html(`${d.circuitName}<br>${d.locality}, ${d.country}`)
+                .html(`<span class="tooltip-bold"></span> ${d.circuitName}<br><span class="tooltip-regular">${d.locality}, ${d.country}</span>`)
                     .style("left", (event.pageX + 5) + "px")
                     .style("top", (event.pageY + 5) + "px");
             })
