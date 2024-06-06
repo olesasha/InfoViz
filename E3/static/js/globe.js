@@ -1,5 +1,14 @@
 // exports and imports for the module
-export { init_globe };
+export { init_globe, set_year };
+
+// global variables for connection
+let selectedYear_global;
+
+// setter function for year
+function set_year(year) {
+    selectedYear_global = year;
+    console.log(selectedYear_global);
+}
 
 
 // init function that is called by the backend at the start 
@@ -16,7 +25,7 @@ const LOC_COLOR = "navy";
 // dimensions
 let GLOBE_WIDTH = window.innerWidth;
 let GLOBE_HEIGHT = window.innerHeight;
-let GLOBE_RADIUS = 650;
+let GLOBE_RADIUS = 600;
 let GLOBE_CENTER = [GLOBE_WIDTH / 2, GLOBE_HEIGHT / 2];
 const DOT_RADIUS = 5;
 
@@ -172,8 +181,9 @@ function render_globe(globe_data, circuit_data) {
             .on("input", function() {
                 const selectedYearIndex = +this.value;
                 const selectedYear = years[selectedYearIndex];
-                updateData(selectedYear); // Update data based on selected year
-                updateLabels(selectedYearIndex); // Update the labels
+                updateData(selectedYear); // update data based on selected year
+                updateLabels(selectedYearIndex); 
+                set_year(selectedYear);  // write global var
             });
     
         // Append the year labels
@@ -190,7 +200,6 @@ function render_globe(globe_data, circuit_data) {
         function updateLabels(selectedYearIndex) {
             labelsContainer.selectAll("div")
                 .classed("bold", (d, i) => i === selectedYearIndex)
-                .classed("red", (d, i) => i === selectedYearIndex)
                 .classed("normal", (d, i) => i !== selectedYearIndex);
         }
             
@@ -217,4 +226,6 @@ function render_globe(globe_data, circuit_data) {
         // re-render the globe with the new data
         render_globe(globe_data, circuit_data);
     }
+    
 }
+

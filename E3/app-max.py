@@ -65,12 +65,13 @@ def get_circuit_data():
 
 def dev_circuit_data():
     # Temp development solution
-    df_circuits = pd.read_parquet("./static/data/all_tracks.parquet")
+    df_circuits = pd.read_parquet("./static/data/all_tracks_new.parquet")
     return df_circuits.to_json(orient="records")
+
     """     all_circuits = []
-    for event_name, group in df_track_data.groupby("event_name"):
+    for gp_name, group in df_track_data.groupby("gp_name"):
         driver_data = {
-            "event_name": event_name,
+            "gp_name": gp_name,
             "track_points": group[["x", "y"]].to_dict(orient="records"),
         }
         all_circuits.append(driver_data)

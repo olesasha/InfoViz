@@ -13,7 +13,6 @@ var current_lap = 1
 var current_leader = 1
 
 
-
 function init_circuit(circuit_data) {
     update_race_data_and_race(selected_year, selected_round)
     calculate_width_and_height(circuit_data)
@@ -22,6 +21,7 @@ function init_circuit(circuit_data) {
     set_circuit(circuit_data)
 
     temp_global_circuit_data = circuit_data
+
 }
 
 var margin = { top: 50, right: 50, bottom: 50, left: 50 }
@@ -222,7 +222,6 @@ function render_select(circuit_data) {
 function update_race_data_and_race(selected_year, selected_round) {
     d3.json(`/update_race_data/${selected_year}/${selected_round}`)
         .then(function (race_data) {
-            console.log(race_data)
             init_lap_counter(race_data)
             set_race_global_race_data(race_data)
             update_race(race_data)
