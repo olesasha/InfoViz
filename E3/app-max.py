@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify
+from polars import col as c
 import pandas as pd
 import fastf1 as ff1
 import numpy as np
@@ -8,6 +9,9 @@ import json
 
 
 app = Flask(__name__)
+
+# Global variable to speed up queries
+global_lap_data = None
 
 # prevent caching the elements in the browser
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
@@ -76,9 +80,13 @@ def dev_circuit_data():
 
 @app.route("/update_race_data/<int:year>/<int:round_number>")
 def update_race_data(year, round_number):
+    global global_lap_data
 
     df_race_data = pl.scan_parquet("./static/data/race_data.parquet")
     df_driver_data = pl.scan_parquet("./static/data/all_driver_data.parquet")
+
+    global_lap_data = pl.scan_parquet("./static/data/all_laps.parquet")
+    global_lap_data = global_lap_data.filter(c("year")==year, c("round_number")==round_number).collect().lazy()
 
     df_race_data = df_race_data.filter(
         pl.col("year") == year,
@@ -90,7 +98,7 @@ def update_race_data(year, round_number):
     
 
     df_driver_data = df_driver_data.select(['round_number', 'year', 'DriverNumber', 'Abbreviation',
-        'TeamName', 'TeamColor', 'TeamId'])
+        'TeamName', 'TeamColor', 'TeamId',"Position"])
 
     df_race_data = df_race_data.join(df_driver_data ,left_on=['round_number', 'year', 'driver_number'], right_on=['round_number', 'year', 'DriverNumber'])
 
@@ -107,11 +115,23 @@ def update_race_data(year, round_number):
             "team_name": group["TeamName"].iloc[0],
             "team_color": group["TeamColor"].iloc[0],
             "positions": group[["x", "y"]].to_dict(orient="records"),
+            "lap":group[["LapNumber"]].to_dict(orient="records"),
+            "pos":group[["Position"]].to_dict(orient="records")
+
         }
         drivers.append(driver_data)
 
     return json.dumps(drivers)
 
+
+""" @app.route("/get_pos_data/<int:year>/<int:round_number>/<int:driver_number>/<int:lap>")
+def post_pos(year, round_number, driver_number, lap):
+    global global_lap_data
+
+    lap_data = global_lap_data.filter(c("DriverNumber")==driver_number,c("LapNumber")==lap)
+
+    return jsonify(lap_data.collect()["Position"][0])
+ """
 
 @app.route("/")
 def index():

@@ -1,19 +1,21 @@
 export { init_circuit, set_circuit_sasha }
 
 // Global Variables
-var driver_dots, x_scale, y_scale, race_interval, line_circuit, svg, width, height
+var driver_dots, x_scale, y_scale, race_interval, line_circuit, svg, width, height, race_data, total_laps
 var global_index = 0
 var race_started = false
-var selected_circuit = "Bahrain Grand Prix"
-var selected_year = 2023
+var selected_round = 1
+var selected_year = 2020
 var max_width_or_height = 800
 var animation_speed = 20
 var temp_global_circuit_data
+var current_lap = 1
+var current_leader = 1
 
 
 
 function init_circuit(circuit_data) {
-    update_race_data_and_race(selected_year, selected_circuit)
+    update_race_data_and_race(selected_year, selected_round)
     calculate_width_and_height(circuit_data)
     render_select(circuit_data)
     render_circuit(circuit_data)
@@ -27,7 +29,7 @@ var margin = { top: 50, right: 50, bottom: 50, left: 50 }
 function render_circuit(circuit_data) {
 
     circuit_data = circuit_data.filter(function (d) {
-        return d["event_name"] === selected_circuit
+        return (d["round_number"] == selected_round && d["year"] == selected_year)
     })
 
     svg = d3.select("#circuit")
@@ -127,30 +129,33 @@ function animate_race(index) {
 
     }
 
+
     race_interval = setInterval(() => {
         index = index + 1
         update(index)
+        update_lap(index)
         global_index = index
+
     }, animation_speed);
 
 }
 
 function set_circuit(circuit_data) {
     d3.select("#selectCircuit").on("change", function (d) {
-        selected_circuit = d3.select(this).property("value")
+        selected_round = d3.select(this).property("value")
         update_circuit(circuit_data)
-        update_race_data_and_race(selected_year, selected_circuit)
+        update_race_data_and_race(selected_year, selected_round)
     })
 
     d3.select("#select_year").on("change", function (d) {
         selected_year = d3.select(this).property("value")
         update_circuit(circuit_data)
-        update_race_data_and_race(selected_year, selected_circuit)
+        update_race_data_and_race(selected_year, selected_round)
     })
 }
 
 function set_circuit_sasha(circuit, year) {
-    selected_circuit = circuit
+    selected_round = circuit
     selected_year = year
     update_circuit(temp_global_circuit_data)
 }
@@ -158,7 +163,7 @@ function set_circuit_sasha(circuit, year) {
 
 function update_circuit(circuit_data) {
     var filtered_circuit_data = circuit_data.filter(function (d) {
-        return (d["event_name"] === selected_circuit && d["year"] == selected_year)
+        return (d["round_number"] == selected_round && d["year"] == selected_year)
     })
     calculate_width_and_height(circuit_data)
 
@@ -187,11 +192,11 @@ function update_circuit(circuit_data) {
 
 
 function render_select(circuit_data) {
-    var all_event_names = new Set(d3.map(circuit_data, (d) => d["event_name"]))
+    var all_round_numbers = new Set(d3.map(circuit_data, (d) => d["round_number"]))
     var all_years = new Set(d3.map(circuit_data, (d) => d["year"]))
     d3.select("#selectCircuit")
         .selectAll("myOptions")
-        .data(all_event_names)
+        .data(all_round_numbers)
         .enter()
         .append("option")
         .text(function (d) { return d }) // text showed in the menu
@@ -214,10 +219,12 @@ function render_select(circuit_data) {
 
 
 // Define a function to update data based on selected year
-function update_race_data_and_race(selected_year, selected_circuit) {
-    d3.json(`/update_race_data/${selected_year}/${1}`)
+function update_race_data_and_race(selected_year, selected_round) {
+    d3.json(`/update_race_data/${selected_year}/${selected_round}`)
         .then(function (race_data) {
             console.log(race_data)
+            init_lap_counter(race_data)
+            set_race_global_race_data(race_data)
             update_race(race_data)
         })
         .catch(function (error) {
@@ -241,9 +248,8 @@ function update_race(race_data) {
 function calculate_width_and_height(circuit_data) {
 
     var filtered_circuit_data = circuit_data.filter(function (d) {
-        return (d["event_name"] == selected_circuit && d["year"] == selected_year)
+        return (d["round_number"] == selected_round && d["year"] == selected_year)
     })
-
 
     var ratio = (d3.max(filtered_circuit_data, d => d["x"]) - d3.min(filtered_circuit_data, d => d["x"])) / (d3.max(filtered_circuit_data, d => d["y"]) - d3.min(filtered_circuit_data, d => d["y"]))
     if (ratio >= 1) {
@@ -256,9 +262,48 @@ function calculate_width_and_height(circuit_data) {
         width = Math.round(max_width_or_height * ratio - margin.left - margin.right)
         height = (max_width_or_height - margin.top - margin.bottom)
     }
-
-    console.log(width)
-
-
 }
 
+
+
+function set_race_global_race_data(rd) {
+    race_data = rd
+}
+
+function init_lap_counter(rd) {
+
+
+    var allLaps = rd.flatMap(d => d.lap)
+    var lapNumbers = allLaps.map(lap => lap.LapNumber);
+    total_laps = d3.max(lapNumbers);
+
+    d3.select("#lap_display").text(`1/${total_laps}`)
+}
+
+function update_lap(index) {
+
+    function update(driver_index) {
+        current_leader = driver_index
+        current_lap = race_data[driver_index]["lap"][index]["LapNumber"]
+        d3.select("#lap_display").text(`${current_lap}/${total_laps}`)
+
+    }
+
+
+    if (race_data[current_leader]["pos"][index]["Position"] == 1) {
+        if (race_data[current_leader]["lap"][index]["LapNumber"] != current_lap) {
+            update(current_leader)
+        }
+    }
+    else {
+        for (var i = 0; i < race_data.length; i++) {
+            // get driver in first
+            if (race_data[i]["pos"][index]["Position"] == 1) {
+                if (race_data[i]["lap"][index]["LapNumber"] != current_lap) {
+                    update(i)
+                    break
+                }
+            }
+        }
+    }
+}
