@@ -12,21 +12,24 @@
     <div id="circuit"></div>
 
     <select id="selectCircuit">
-        <option selected="selected">Italian Grand Prix</option>
     </select>
     <select name="select_year" id="select_year">
-        <option selected="selected">2018</option>
     </select>
 
     <button id="start_race">(Re-) Start Race</button>
     <button id="stop_race">Stop Race</button>
     <button id="resume_race">Resume Race</button>
 
+    <div class="slider">
+        <label for="speedSlider">Renngeschwindigkeit: </label>
+        <input type="range" id="speedSlider" min="-270" max="-2" value="-20">
+    </div>
+
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module" src="../static/js/circuit.js"></script>
     <script type="module">
         import { init_circuit } from "../static/js/circuit.js"
-        init_circuit({{ circuit_data | safe }}, {{ driver_pos_data | safe }})
+        init_circuit({{ circuit_data | safe }})
 
     </script>
 

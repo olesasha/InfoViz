@@ -1,14 +1,16 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import pandas as pd
 import fastf1 as ff1
 import numpy as np
+import polars as pl
 import json
+
 
 
 app = Flask(__name__)
 
 # prevent caching the elements in the browser
-app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0       
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 # show changes without restarting the Flask server
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
@@ -60,7 +62,6 @@ def get_circuit_data():
 def dev_circuit_data():
     # Temp development solution
     df_circuits = pd.read_parquet("./static/data/all_tracks.parquet")
-    #df_circuits.loc[:,["x","y"]] = df_circuits.loc[:,["x","y"]].round(0).astype("Int16")
     return df_circuits.to_json(orient="records")
     """     all_circuits = []
     for event_name, group in df_track_data.groupby("event_name"):
@@ -73,38 +74,52 @@ def dev_circuit_data():
     return json.dumps(all_circuits) """
 
 
+@app.route("/update_race_data/<int:year>/<int:round_number>")
+def update_race_data(year, round_number):
 
-def dev_driver_pos():
-    df_drivers = pd.read_parquet(
-        "static/data/all_driver_pos.parquet"
-      #  "/Users/max/Library/Mobile Documents/com~apple~CloudDocs/100 Hochschule/110 TU Wien/SoSe 24/InfoVis/InfoViz/E3/static/data/all_driver_pos.parquet"
-    )
+    df_race_data = pl.scan_parquet("./static/data/race_data.parquet")
+    df_driver_data = pl.scan_parquet("./static/data/all_driver_data.parquet")
 
-    df_drivers = df_drivers.replace({"TSU": None}).dropna()
+    df_race_data = df_race_data.filter(
+        pl.col("year") == year,
+        pl.col("round_number"))
+    
+    df_driver_data = df_driver_data.filter(
+        pl.col("year") == year,
+        pl.col("round_number") == round_number)
+    
+
+    df_driver_data = df_driver_data.select(['round_number', 'year', 'DriverNumber', 'Abbreviation',
+        'TeamName', 'TeamColor', 'TeamId'])
+
+    df_race_data = df_race_data.join(df_driver_data ,left_on=['round_number', 'year', 'driver_number'], right_on=['round_number', 'year', 'DriverNumber'])
+
+    df_race_data = df_race_data.collect().to_pandas()
+
+    df_race_data.join
+
     drivers = []
-    for driver, group in df_drivers.groupby("driver"):
+    for index, group in df_race_data.groupby(["driver_number","year","round_number"]):
         driver_data = {
-            "driver": driver,
-            "team": group["team"].iloc[0],
-            "color": group["color"].iloc[0],
-            "positions": group[["X", "Y"]].to_dict(orient="records"),
+            "driver": index[0].astype(object),
+            "year": index[1].astype(object),
+            "round_number": index[2].astype(object),
+            "team_name": group["TeamName"].iloc[0],
+            "team_color": group["TeamColor"].iloc[0],
+            "positions": group[["x", "y"]].to_dict(orient="records"),
         }
         drivers.append(driver_data)
 
     return json.dumps(drivers)
 
 
-# the route leads to the main and the only page we are using for the project
 @app.route("/")
-# define the index function which will render the html file
-# the function fetches the data on the server using the getter functions defined above
 def index():
 
     return render_template(
         "index_max.html",
         globe_data=get_globe_data(),
         circuit_data=dev_circuit_data(),
-        driver_pos_data=dev_driver_pos(),
     )
 
 
