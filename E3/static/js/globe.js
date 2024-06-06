@@ -16,7 +16,7 @@ const LOC_COLOR = "navy";
 // dimensions
 let GLOBE_WIDTH = window.innerWidth;
 let GLOBE_HEIGHT = window.innerHeight;
-let GLOBE_RADIUS = 500;
+let GLOBE_RADIUS = 650;
 let GLOBE_CENTER = [GLOBE_WIDTH / 2, GLOBE_HEIGHT / 2];
 const DOT_RADIUS = 5;
 
@@ -149,38 +149,58 @@ function render_globe(globe_data, circuit_data) {
         return distance <= Math.PI / 2 && x >= 0 && x <= GLOBE_WIDTH && y >= 0 && y <= GLOBE_HEIGHT;
     }
 
-    // dropdown function
-    function initDropdown() {
-        // generate dropdown if it is not there yet, otherwise update
-        const existingDropdown = d3.select("#dropdown-container").select("#season-dropdown");
-        if (!existingDropdown.empty()) {
-            return; 
+    function initSlider() {
+        // Hardcoded years from 2020 to 2024
+        const years = Array.from({ length: 5 }, (_, index) => 2020 + index);
+    
+        const sliderContainer = d3.select("#slider-container");
+        
+        // Check if the slider already exists
+        const existingSlider = sliderContainer.select("#slider input");
+        if (!existingSlider.empty()) {
+            return; // Slider already exists, no need to recreate
         }
-        // hardcoded years from 2019 to 2024
-        const years = Array.from({ length: 6 }, (_, index) => 2019 + index);
     
-        const dropdown = d3.select("#dropdown-container")
-            .append("select")
-            .attr("id", "season-dropdown");
+        // Append the slider input element
+        const slider = sliderContainer.select("#slider")
+            .append("input")
+            .attr("type", "range")
+            .attr("min", 0)
+            .attr("max", years.length - 1)
+            .attr("value", 0)
+            .attr("step", 1)
+            .on("input", function() {
+                const selectedYearIndex = +this.value;
+                const selectedYear = years[selectedYearIndex];
+                updateData(selectedYear); // Update data based on selected year
+                updateLabels(selectedYearIndex); // Update the labels
+            });
     
-        dropdown.selectAll("option")
+        // Append the year labels
+        const labelsContainer = sliderContainer.select("#years-labels");
+    
+        labelsContainer.selectAll("div")
             .data(years)
-            .enter().append("option")
-            .text(d => d)
-            .attr("value", d => d);
-    
-        // event listener for dropdown change
-        dropdown.on("change", function() {
-            const selectedYear = +this.value; // get the selected year 
-            updateData(selectedYear); //  update data based on selected year
-        });
-    }
+            .enter()
+            .append("div")
+            .attr("class", "year-label")
+            .style("text-align", "left")
+            .text(d => d);
 
-    // Define a function to update data based on selected year
+        function updateLabels(selectedYearIndex) {
+            labelsContainer.selectAll("div")
+                .classed("bold", (d, i) => i === selectedYearIndex)
+                .classed("red", (d, i) => i === selectedYearIndex)
+                .classed("normal", (d, i) => i !== selectedYearIndex);
+        }
+            
+        // Initialize the labels with the first year highlighted
+        updateLabels(0);
+    }
+    
     function updateData(selectedYear) {
         d3.json(`/update_circuit_data/${selectedYear}`)
             .then(function(circuit_data) {
-
                 // Call a function to update globe visualization with new data
                 updateGlobe(globe_data, circuit_data);
             })
@@ -188,13 +208,13 @@ function render_globe(globe_data, circuit_data) {
                 console.error("Error updating data:", error);
             });
     }
-
-    initDropdown(circuit_data);
-
-    // function to overwrite the existing svg
+    
+    initSlider();
+    
     function updateGlobe(globe_data, circuit_data) {
-    // remove existing elements from the svg
-    d3.select('#globe').selectAll("*").remove();
-    // re-render the globe with the new data
-    render_globe(globe_data, circuit_data);}
+        // remove existing elements from the svg
+        d3.select('#globe').selectAll("*").remove();
+        // re-render the globe with the new data
+        render_globe(globe_data, circuit_data);
+    }
 }
