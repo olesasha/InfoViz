@@ -228,39 +228,34 @@ function render_globe(globe_data, circuit_data) {
     }
     
     async function worldTour(circuit_data, projection) {
-
-        let p1 = [circuit_data[0].long, circuit_data[0].lat], p2 = [circuit_data[0].long, circuit_data[0].lat], r1 = [0, 0, 0], r2 = [0, 0, 0];
+        const tilt = 20;
+        const duration = 2000; // Increase duration for smoother animation
     
-        for (let i = 1; i < circuit_data.length; i++) {
-            console.log(i);
-            p1 = p2, p2 = [circuit_data[i].long, circuit_data[i].lat];
-            console.log(p2);
-
-            r1 = r2,  r2=[-p2[0], TILT-p2[1], 0];
-
+        for (let i = 0; i < circuit_data.length - 1; i++) {
+            const p1 = [circuit_data[i].long, circuit_data[i].lat];
+            const p2 = [circuit_data[i + 1].long, circuit_data[i + 1].lat];
+    
+            const r1 = [-p1[0], tilt - p1[1], 0];
+            const r2 = [-p2[0], tilt - p2[1], 0];
+    
             const ip = d3.geoInterpolate(p1, p2);
             const iv = Versor.interpolateAngles(r1, r2);
-            console.log(iv);
     
             await d3.transition()
-                .duration(1000)
-                .tween("renderLines", () => t => {
+                .duration(duration)
+                .tween("rotate", () => t => {
                     projection.rotate(iv(t));
-                    console.log("Rotated angles:", iv(t));
+                    // Redraw all paths with the updated projection
+                    svg.selectAll("path").attr("d", path);
+                    // Render the lines
                     renderLines({ type: "LineString", coordinates: [p1, ip(t)] });
-                })
-            await d3.transition()
-                .duration(1000)
-                .tween("renderLines", () => t => {
-                    projection.rotate(iv(1));
-                    renderLines({ type: "LineString", coordinates: [ip(t), p2] });
                 })
                 .end();
         }
     }
     
     function renderLines(arc) {
-        globe.selectAll('path').remove(); 
+        globe.selectAll('path').remove();
     
         svg.append('path')
             .datum(arc)
@@ -271,8 +266,7 @@ function render_globe(globe_data, circuit_data) {
     }
     
     // Start the world tour
-    worldTour(circuit_data, projection);
-}
+    worldTour(circuit_data, projection);}
 
 class Versor {
     static fromAngles([l, p, g]) {
