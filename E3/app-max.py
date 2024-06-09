@@ -7,7 +7,6 @@ import polars as pl
 import json
 
 
-
 app = Flask(__name__)
 
 # Global variable to speed up queries
@@ -87,65 +86,142 @@ def update_race_data(year, round_number):
     df_driver_data = pl.scan_parquet("./static/data/all_driver_data.parquet")
 
     df_lap_data = pl.scan_parquet("./static/data/all_laps.parquet")
-    df_lap_data = df_lap_data.filter(c("year")==year, c("round_number")==round_number).collect().lazy()
+    df_lap_data = df_lap_data.filter(
+        c("year") == year, c("round_number") == round_number
+    )
 
     df_race_data = df_race_data.filter(
-        pl.col("year") == year,
-        pl.col("round_number") == round_number)
-    
+        pl.col("year") == year, pl.col("round_number") == round_number
+    )
+
     df_driver_data = df_driver_data.filter(
-        pl.col("year") == year,
-        pl.col("round_number") == round_number)
-    
+        pl.col("year") == year, pl.col("round_number") == round_number
+    )
 
-    df_driver_data = df_driver_data.select(['round_number', 'year', 'DriverNumber', 'Abbreviation',
-        'TeamName', 'TeamColor', 'TeamId'])
-    
-    df_lap_data = df_lap_data.select('round_number', 'year', 'DriverNumber','LapNumber','Position')
+    df_driver_data = df_driver_data.select(
+        [
+            "round_number",
+            "year",
+            "DriverNumber",
+            "Abbreviation",
+            "TeamName",
+            "TeamColor",
+            "TeamId",
+        ]
+    )
 
-    df_race_data = df_race_data.join(df_driver_data ,left_on=['round_number', 'year', 'driver_number'], right_on=['round_number', 'year', 'DriverNumber'])
+    df_lap_data = df_lap_data.select(
+        "round_number", "year", "DriverNumber", "LapNumber", "Position"
+    )
 
-    
-    df_race_data = df_race_data.join(df_lap_data,left_on=['round_number', 'year', 'driver_number','LapNumber'], right_on=['round_number', 'year', 'DriverNumber','LapNumber'], how="left")
+    df_race_data = df_race_data.join(
+        df_driver_data,
+        left_on=["round_number", "year", "driver_number"],
+        right_on=["round_number", "year", "DriverNumber"],
+    )
 
-    df_race_data = df_race_data.collect().to_pandas()
+    df_race_data = df_race_data.join(
+        df_lap_data,
+        left_on=["round_number", "year", "driver_number", "LapNumber"],
+        right_on=["round_number", "year", "DriverNumber", "LapNumber"],
+        how="left",
+    )
+
+    df_race_data = df_race_data
+
+    # Convert columns to string for grouping
+    df_race_data = df_race_data.with_columns(
+        [
+            pl.col("driver_number").cast(pl.Utf8),
+            pl.col("year").cast(pl.Utf8),
+            pl.col("round_number").cast(pl.Utf8),
+        ]
+    )
+
+    # Group by the required columns
+    grouped = df_race_data.groupby(["driver_number", "year", "round_number"]).agg(
+        [
+            pl.col("TeamName").first().alias("team_name"),
+            pl.col("TeamColor").first().alias("team_color"),
+            pl.struct(["x", "y"]).alias("positions"),
+            pl.struct(["LapNumber"]).alias("lap"),
+            pl.struct(["Position"]).alias("pos"),
+        ]
+    )
+
+    # Convert to dictionary
+    drivers = grouped.collect().to_dicts()
+
+    # Convert to JSON
+    drivers_json = json.dumps(drivers)
+
+    return drivers_json
 
 
+@app.route("/get_lap_data/<int:year>/<int:round_number>/<int:lap>")
+def get_lap_data(year, round_number,lap):
 
-    drivers = []
-    for index, group in df_race_data.groupby(["driver_number","year","round_number"]):
-        driver_data = {
-            "driver": index[0].astype(object),
-            "year": index[1].astype(object),
-            "round_number": index[2].astype(object),
-            "team_name": group["TeamName"].iloc[0],
-            "team_color": group["TeamColor"].iloc[0],
-            "positions": group[["x", "y"]].to_dict(orient="records"),
-            "lap":group[["LapNumber"]].to_dict(orient="records"),
-            "pos":group[["Position"]].to_dict(orient="records")
+    df_lap_data = pl.scan_parquet("./static/data/all_laps.parquet")
+    df_lap_data = pl.scan_parquet("./static/data/all_laps.parquet")
+    df_driver_data = pl.scan_parquet("./static/data/all_driver_data.parquet")
 
-        }
-        drivers.append(driver_data)
+    df_lap_data = df_lap_data.select(
+        [
+            "round_number",
+            "year",
+            "Driver",
+            "DriverNumber",
+            "LapTime",
+            "LapNumber",
+            "IsPersonalBest",
+            "Compound",
+            "Position",
+        ]
+    )
 
-    return json.dumps(drivers)
+    df_lap_data = df_lap_data.filter(c("year")==year, c("round_number")==round_number, c("LapNumber") <= lap)
 
+    df_driver_data = df_driver_data.select(["round_number","year","DriverNumber","TeamColor"])
 
-""" @app.route("/get_pos_data/<int:year>/<int:round_number>/<int:driver_number>/<int:lap>")
-def post_pos(year, round_number, driver_number, lap):
-    global global_lap_data
+    df_lap_data = df_lap_data.join(df_driver_data, on=["round_number","year","DriverNumber"]).drop_nulls(subset="Position")
 
-    lap_data = global_lap_data.filter(c("DriverNumber")==driver_number,c("LapNumber")==lap)
+    grouped_lap_data = df_lap_data.group_by('DriverNumber').agg([
+    pl.col('LapNumber').alias('lap'),
+    pl.col('Position').alias('pos'),
+    pl.col("TeamColor").first()
 
-    return jsonify(lap_data.collect()["Position"][0])
- """
+    ])
+
+    output_dict = {}
+
+    max_len = lap
+
+    # Create the output dictionary from the grouped_lap_data DataFrame
+    for row in grouped_lap_data.collect().rows():
+        driver, lap_numbers, positions,team_color = row
+    # Get the last lap number and position for padding
+
+        last_position = positions[-1]
+        last_lap = lap_numbers[-1]
+
+        # Extend lap_numbers and positions arrays to ensure they have the same length
+        lap_numbers.extend([last_lap] * (max_len - len(lap_numbers)))
+        positions.extend([last_position] * (max_len - len(positions)))
+
+        
+        output_dict[driver] = {
+            "values": [{"lap": x, "pos": y} for x, y in zip(lap_numbers, positions)],
+            "color": f"#{team_color}"
+    }
+
+    return jsonify(output_dict)
+
 
 @app.route("/")
 def index():
 
     return render_template(
-        "index_max.html",
-        globe_data=get_globe_data(),
-        circuit_data=dev_circuit_data(),
+        "index_max.html", globe_data=get_globe_data(), circuit_data=dev_circuit_data()
     )
 
 

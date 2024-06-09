@@ -1,4 +1,4 @@
-export { update_driver_pos_chart, init_pos_plot, update_driver_pos_first_lap }
+export { update_driver_pos_chart, init_pos_plot, update_driver_pos_first_lap, adjust_x_axis_pos_plot }
 
 
 var global_lineplot_data
@@ -49,7 +49,7 @@ function render_pos_chart() {
 
     // scale the x axis between the min and max year available in the data
     x = d3.scaleLinear()
-        .domain([0, 50])
+        .domain([0, 100])
         .range([0, width])
 
 
@@ -73,80 +73,106 @@ function render_pos_chart() {
         .call(d3.axisLeft(y)
             .tickSizeOuter(0))
 
-    // Define line function
     line = d3.line()
-        .x(d => x(d.x))
-        .y(d => y(d.y));
+        .x(d => x(d.lap))
+        .y(d => y(d.pos));
 
 
-
-    // Add lines
-    // Color lines differently
-
-
-    // Initialize lines
-    /*     lines = svg
-            .append("g")
-            .selectAll(".line")
-            .enter()
-            .append("path")
-            .data({
-                lap: [1, 2, 3],
-                pos: [1, 2, 3]
-            })
-            .attr("class", "line")
-            .attr("fill", "none")
-            .attr("stroke", "black")
-            .attr("stroke-width", 1.5)
-            .attr("d", d3.line()
-                .x(d => x(d.lap))
-                .y(d => y(+d.pos))); */
 
 }
 
-function update_driver_pos_first_lap(driver_pos_first_lap) {
-    console.log(driver_pos_first_lap);
-    concatenated_driver_pos = driver_pos_first_lap
+function update_driver_pos_first_lap(year, round_number) {
+    d3.json(`/get_lap_data/${year}/${round_number}/${1}`)
+        .then(function (lap_data) {
 
-    const temp_line_data = driver_pos_first_lap.map((item) => ({
-        values: item.lap.map((lap, index) => ({ x: lap, y: item.pos[index] })),
-        color: item.team_color
-    }));
 
-    console.log(temp_line_data);
+            update_driver_pos_chart(year, round_number, 1)
 
-    svg.selectAll(".line")
-        .data(temp_line_data)
-        .enter().append("path")
-        .attr("class", "line")
-        .attr("d", d => line(d.values))
-        .style("stroke",d =>`#${d.color}`)
-        .style("fill","none")
+
+            lap_data = Object.values(lap_data)
+            svg.selectAll(".line")
+                .data(lap_data)
+                .enter()
+                .append("path")
+                .attr("class", "line")
+                .attr("d", function (d) {
+                    // Generate the line path string
+                    return d3.line()
+                        .x(function (d) { return x(d.lap); }) // Access the lap value
+                        .y(function (d) { return y(d.pos); })(d.values); // Access the position value
+                })
+                .attr("stroke", d => d.color) // Set stroke color
+                .style("fill", "none");
+
+
+            const lap_data_dots = lap_data.map(d => {
+                return {
+                    color: d.color,
+                    lap: d.values[d.values.length - 1].lap,
+                    pos: d.values[d.values.length - 1].pos
+                };
+            });
+
+
+            svg.selectAll(".dots_line_plot")
+                .data(lap_data_dots)
+                .enter()
+                .append("circle")
+                .attr("class", "dots_line_plot")
+                .attr("cx", function (d) { return x(d.lap); }) // Set the x position of the cycle marker
+                .attr("cy", function (d) { return y(d.pos); }) // Set the y position of the cycle marker
+                .attr("r", 5) // Set the radius of the cycle marker
+                .style("fill", d => d.color)
+                .style("stroke", "black");
+        })
+
 }
 
 
 
 
-function update_driver_pos_chart(driver_pos) {
+function update_driver_pos_chart(year, round_number, lap) {
+    d3.json(`/get_lap_data/${year}/${round_number}/${lap}`)
+        .then(function (lap_data) {
+            lap_data = Object.values(lap_data)
+
+            console.log(lap_data);
+            svg.selectAll(".line")
+                .data(lap_data)
+                .attr("d", function (d) {
+                    // Generate the line path string
+                    return d3.line()
+                        .x(function (d) { return x(d.lap); }) // Access the lap value
+                        .y(function (d) { return y(d.pos); })(d.values); // Access the position value
+                })
+                .attr("stroke", d => d.color) // Set stroke color
 
 
-    // Iterate through each array
-    concatenated_driver_pos.forEach((d, index) => {
-        // Iterate through each object in the array
-        concatenated_driver_pos[index].lap.push(driver_pos[index].lap);
-        concatenated_driver_pos[index].pos.push(driver_pos[index].pos);
 
-    })
+            const lap_data_dots = lap_data.map(d => {
+                return {
+                    color: d.color,
+                    lap: d.values[d.values.length - 1].lap,
+                    pos: d.values[d.values.length - 1].pos
+                };
+            });
 
+            svg.selectAll(".dots_line_plot")
+                .data(lap_data_dots)
+                .attr("cx", function (d) { return x(d.lap); }) // Set the x position of the cycle marker
+                .attr("cy", function (d) { return y(d.pos); }) // Set the y position of the cycle marker
+                .style("fill", d => d.color)
+        })
 
-    const temp_line_data = concatenated_driver_pos.map((item) => ({
-        values: item.lap.map((lap, index) => ({ x: lap, y: item.pos[index] })),
-        color: item.team_color
-    }));
+}
 
-    console.log(temp_line_data);
+function adjust_x_axis_pos_plot(total_laps) {
+    x.domain([0, total_laps])
 
-    svg.selectAll(".line")
-        .data(temp_line_data)
-        .attr("d", d => line(d.values))
+    svg.select(".xAxis")
+        .transition()
+        .duration(300)
+        .call(d3.axisBottom(x)
+            .tickSizeOuter(0)
+            .tickFormat(d3.format("d")))
 }

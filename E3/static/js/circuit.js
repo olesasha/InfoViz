@@ -1,8 +1,8 @@
 export { init_circuit, set_circuit_sasha }
-import { update_driver_pos_chart,update_driver_pos_first_lap} from "./positions.js";
+import { update_driver_pos_chart, update_driver_pos_first_lap, adjust_x_axis_pos_plot} from "./positions.js";
 
 // Global Variables
-var driver_dots, x_scale, y_scale, race_interval, line_circuit, svg, width, height, race_data, total_laps
+var driver_dots, x_scale, y_scale, race_interval, line_circuit, svg, width, height, race_data, total_laps, last_index
 var global_index = 0
 var race_started = false
 var selected_round = 1
@@ -16,6 +16,7 @@ var current_leader = 1
 
 function init_circuit(circuit_data) {
     update_race_data_and_race(selected_year, selected_round)
+    update_driver_pos_first_lap(selected_year,selected_round)
     calculate_width_and_height(circuit_data)
     render_select(circuit_data)
     render_circuit(circuit_data)
@@ -161,6 +162,7 @@ function update_circuit(circuit_data) {
         return (d["round_number"] == selected_round && d["year"] == selected_year)
     })
     calculate_width_and_height(circuit_data)
+    update_driver_pos_first_lap(selected_year,selected_round)
 
     d3.select('#circuit').selectAll("*").remove();
     render_circuit(circuit_data)
@@ -220,29 +222,6 @@ function update_race_data_and_race(selected_year, selected_round) {
             init_lap_counter_and_slider(race_data)
             set_race_global_race_data(race_data)
             update_race(race_data)
-            console.log(race_data);
-
-            // Send the first lap data to the pos plot
-            let driver_pos = [];
-
-            race_data.forEach(d => {
-                let index_next_lap = d.lap.findIndex(d => d.LapNumber == current_lap)
-                let pos_next_lap = d.pos[index_next_lap].Position
-
-                let temp_driver_object = {
-                    driver: d.driver,
-                    year: d.year,
-                    round_number: d.round_number,
-                    team_color: d.team_color,
-                    team_name: d.team_name,
-                    lap: [0,current_lap],
-                    pos: [pos_next_lap, pos_next_lap]
-                }
-
-                driver_pos = driver_pos.concat(temp_driver_object)
-            });
-            update_driver_pos_first_lap(driver_pos)
-
         })
         .catch(function (error) {
             console.error("Error updating data:", error);
@@ -294,6 +273,8 @@ function init_lap_counter_and_slider(rd) {
     var lapNumbers = allLaps.map(lap => lap.LapNumber);
     total_laps = d3.max(lapNumbers);
 
+    adjust_x_axis_pos_plot(total_laps)
+
     d3.select("#lap_display").text(`1/${total_laps}`)
 
     d3.select("#lapSlider")
@@ -317,33 +298,11 @@ function update_lap(index) {
         current_leader = driver_index
         current_lap = race_data[driver_index]["lap"][index]["LapNumber"]
         d3.select("#lap_display").text(`${current_lap}/${total_laps}`)
-
-        // Here we also call the update function of the pos plot and the tire plot
-
-        let driver_pos = [];
-
-        race_data.forEach(d => {
-            let index_next_lap = d.lap.findIndex(d => d.LapNumber == current_lap)
-            let pos_next_lap = d.pos[index_next_lap].Position
-
-            let temp_driver_object = {
-                driver: d.driver,
-                year: d.year,
-                round_number: d.round_number,
-                team_color: d.team_color,
-                team_name: d.team_name,
-                lap: current_lap,
-                pos: pos_next_lap
-            }
-
-            driver_pos = driver_pos.concat(temp_driver_object)
-
-        });
-        update_driver_pos_chart(driver_pos)
+        update_driver_pos_chart(selected_year, selected_round, current_lap)
     }
 
 
-    if (race_data[current_leader]["pos"][index]["Position"] == 1) {
+    if (race_data[current_leader]["pos"][index]["Position"] == 1 ) {
         if (race_data[current_leader]["lap"][index]["LapNumber"] != current_lap) {
             update(current_leader)
         }
@@ -362,8 +321,18 @@ function update_lap(index) {
 }
 
 function update_animation_lap(new_lap) {
-    var laps = race_data[current_leader].lap
-    global_index = laps.findIndex(d => d.LapNumber == new_lap);
+
+    var min_index = Infinity
+    race_data.forEach((d,index) => {
+        var temp_index = d.lap.findIndex(d => d.LapNumber == new_lap)
+        if (temp_index >= 0){
+            if (temp_index < min_index){
+                min_index = temp_index
+                current_leader = index
+            }
+        }
+    });
+    global_index = min_index
 
 }
 

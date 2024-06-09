@@ -81,7 +81,6 @@ function render_lineplot(lineplot_data) {
     // initialize the line
     line = svg
         .append("g")
-        .attr("class", "yAxis")
         .append("path")
         .datum(lineplot_data)
         .attr("stroke", "none")
