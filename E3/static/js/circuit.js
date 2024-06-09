@@ -1,4 +1,5 @@
 export { init_circuit, set_circuit_sasha }
+import { update_driver_pos_chart,update_driver_pos_first_lap} from "./positions.js";
 
 // Global Variables
 var driver_dots, x_scale, y_scale, race_interval, line_circuit, svg, width, height, race_data, total_laps
@@ -19,9 +20,7 @@ function init_circuit(circuit_data) {
     render_select(circuit_data)
     render_circuit(circuit_data)
     set_circuit(circuit_data)
-
     temp_global_circuit_data = circuit_data
-
 }
 
 var margin = { top: 50, right: 50, bottom: 50, left: 50 }
@@ -85,25 +84,21 @@ function render_circuit(circuit_data) {
     d3.select("#start_race").on("click", start_race)
     d3.select("#stop_race").on("click", stop_race)
     d3.select("#resume_race").on("click", resume_race)
-    d3.select("#speedSlider").on("input", function () {
-        stop_race()
-        animation_speed = -this.value;
-        resume_race()
-    });
 }
 
 
 
 function start_race() {
 
+
     if (!race_started) {
+        init_lap_counter_and_slider(race_data)
         driver_dots
             .attr("cx", d => x_scale(d.positions[0].x))
             .attr("cy", d => y_scale(d.positions[0].y))
 
         animate_race(0)
         race_started = true
-
     }
 }
 
@@ -222,9 +217,32 @@ function render_select(circuit_data) {
 function update_race_data_and_race(selected_year, selected_round) {
     d3.json(`/update_race_data/${selected_year}/${selected_round}`)
         .then(function (race_data) {
-            init_lap_counter(race_data)
+            init_lap_counter_and_slider(race_data)
             set_race_global_race_data(race_data)
             update_race(race_data)
+            console.log(race_data);
+
+            // Send the first lap data to the pos plot
+            let driver_pos = [];
+
+            race_data.forEach(d => {
+                let index_next_lap = d.lap.findIndex(d => d.LapNumber == current_lap)
+                let pos_next_lap = d.pos[index_next_lap].Position
+
+                let temp_driver_object = {
+                    driver: d.driver,
+                    year: d.year,
+                    round_number: d.round_number,
+                    team_color: d.team_color,
+                    team_name: d.team_name,
+                    lap: [0,current_lap],
+                    pos: [pos_next_lap, pos_next_lap]
+                }
+
+                driver_pos = driver_pos.concat(temp_driver_object)
+            });
+            update_driver_pos_first_lap(driver_pos)
+
         })
         .catch(function (error) {
             console.error("Error updating data:", error);
@@ -269,7 +287,7 @@ function set_race_global_race_data(rd) {
     race_data = rd
 }
 
-function init_lap_counter(rd) {
+function init_lap_counter_and_slider(rd) {
 
 
     var allLaps = rd.flatMap(d => d.lap)
@@ -277,6 +295,20 @@ function init_lap_counter(rd) {
     total_laps = d3.max(lapNumbers);
 
     d3.select("#lap_display").text(`1/${total_laps}`)
+
+    d3.select("#lapSlider")
+        .attr("max", total_laps)
+        .on("input", function () {
+            stop_race()
+            update_animation_lap(this.value)
+            resume_race()
+        })
+
+    d3.select("#speedSlider").on("input", function () {
+        stop_race()
+        animation_speed = -this.value;
+        resume_race()
+    })
 }
 
 function update_lap(index) {
@@ -286,6 +318,28 @@ function update_lap(index) {
         current_lap = race_data[driver_index]["lap"][index]["LapNumber"]
         d3.select("#lap_display").text(`${current_lap}/${total_laps}`)
 
+        // Here we also call the update function of the pos plot and the tire plot
+
+        let driver_pos = [];
+
+        race_data.forEach(d => {
+            let index_next_lap = d.lap.findIndex(d => d.LapNumber == current_lap)
+            let pos_next_lap = d.pos[index_next_lap].Position
+
+            let temp_driver_object = {
+                driver: d.driver,
+                year: d.year,
+                round_number: d.round_number,
+                team_color: d.team_color,
+                team_name: d.team_name,
+                lap: current_lap,
+                pos: pos_next_lap
+            }
+
+            driver_pos = driver_pos.concat(temp_driver_object)
+
+        });
+        update_driver_pos_chart(driver_pos)
     }
 
 
@@ -306,3 +360,12 @@ function update_lap(index) {
         }
     }
 }
+
+function update_animation_lap(new_lap) {
+    var laps = race_data[current_leader].lap
+    global_index = laps.findIndex(d => d.LapNumber == new_lap);
+
+}
+
+
+

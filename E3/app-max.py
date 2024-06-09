@@ -86,12 +86,12 @@ def update_race_data(year, round_number):
     df_race_data = pl.scan_parquet("./static/data/race_data.parquet")
     df_driver_data = pl.scan_parquet("./static/data/all_driver_data.parquet")
 
-    global_lap_data = pl.scan_parquet("./static/data/all_laps.parquet")
-    global_lap_data = global_lap_data.filter(c("year")==year, c("round_number")==round_number).collect().lazy()
+    df_lap_data = pl.scan_parquet("./static/data/all_laps.parquet")
+    df_lap_data = df_lap_data.filter(c("year")==year, c("round_number")==round_number).collect().lazy()
 
     df_race_data = df_race_data.filter(
         pl.col("year") == year,
-        pl.col("round_number"))
+        pl.col("round_number") == round_number)
     
     df_driver_data = df_driver_data.filter(
         pl.col("year") == year,
@@ -99,13 +99,18 @@ def update_race_data(year, round_number):
     
 
     df_driver_data = df_driver_data.select(['round_number', 'year', 'DriverNumber', 'Abbreviation',
-        'TeamName', 'TeamColor', 'TeamId',"Position"])
+        'TeamName', 'TeamColor', 'TeamId'])
+    
+    df_lap_data = df_lap_data.select('round_number', 'year', 'DriverNumber','LapNumber','Position')
 
     df_race_data = df_race_data.join(df_driver_data ,left_on=['round_number', 'year', 'driver_number'], right_on=['round_number', 'year', 'DriverNumber'])
 
+    
+    df_race_data = df_race_data.join(df_lap_data,left_on=['round_number', 'year', 'driver_number','LapNumber'], right_on=['round_number', 'year', 'DriverNumber','LapNumber'], how="left")
+
     df_race_data = df_race_data.collect().to_pandas()
 
-    df_race_data.join
+
 
     drivers = []
     for index, group in df_race_data.groupby(["driver_number","year","round_number"]):
