@@ -25,8 +25,9 @@ const LOC_COLOR = "navy";
 // dimensions
 let GLOBE_WIDTH = window.innerWidth;
 let GLOBE_HEIGHT = window.innerHeight;
-let GLOBE_RADIUS = 600;
+let GLOBE_RADIUS = 500;
 let GLOBE_CENTER = [GLOBE_WIDTH / 2, GLOBE_HEIGHT / 2];
+let TILT = 35;
 const DOT_RADIUS = 5;
 
 // interaction
@@ -47,11 +48,9 @@ function render_globe(globe_data, circuit_data) {
     var projection = d3.geoOrthographic()       
                     .scale(GLOBE_RADIUS)
                     .center([0, 0])
-                    .rotate([0,-30])
+                    .rotate([0,-TILT])
                     .translate(GLOBE_CENTER);
     const initialScale = projection.scale();
-
-    var path = d3.geoPath().projection(projection);
 
     // append svg to the globe container 
     var svg = d3.select('#globe')
@@ -59,6 +58,7 @@ function render_globe(globe_data, circuit_data) {
                 .attr("width", GLOBE_WIDTH)
                 .attr("height", GLOBE_HEIGHT);
 
+    var path = d3.geoPath().projection(projection, svg);
 
     // outline of the globe
     var globe = svg.append("circle")
@@ -83,8 +83,7 @@ function render_globe(globe_data, circuit_data) {
         .style('stroke', 'black')
         .style('stroke-width', 0.3)
         .style("opacity",0.8);
-            
-
+    
    svg.call(d3.drag()
     .on('drag', function(event) {
         const rotate = projection.rotate();
@@ -104,6 +103,7 @@ function render_globe(globe_data, circuit_data) {
                 return "translate(" + projection(coords) + ") scale(" + (visibility === "visible" ? 1 : 0) + ")";
             });
         path = d3.geoPath().projection(projection);
+
         svg.selectAll("path").attr("d", path); // redraw all paths with the new projection
         }))
         .call(d3.zoom()
@@ -227,5 +227,105 @@ function render_globe(globe_data, circuit_data) {
         render_globe(globe_data, circuit_data);
     }
     
+    async function worldTour(circuit_data, projection) {
+
+        let p1 = [circuit_data[0].long, circuit_data[0].lat], p2 = [circuit_data[0].long, circuit_data[0].lat], r1 = [0, 0, 0], r2 = [0, 0, 0];
+    
+        for (let i = 1; i < circuit_data.length; i++) {
+            console.log(i);
+            p1 = p2, p2 = [circuit_data[i].long, circuit_data[i].lat];
+            console.log(p2);
+
+            r1 = r2,  r2=[-p2[0], TILT-p2[1], 0];
+
+            const ip = d3.geoInterpolate(p1, p2);
+            const iv = Versor.interpolateAngles(r1, r2);
+            console.log(iv);
+    
+            await d3.transition()
+                .duration(1000)
+                .tween("renderLines", () => t => {
+                    projection.rotate(iv(t));
+                    console.log("Rotated angles:", iv(t));
+                    renderLines({ type: "LineString", coordinates: [p1, ip(t)] });
+                })
+            await d3.transition()
+                .duration(1000)
+                .tween("renderLines", () => t => {
+                    projection.rotate(iv(1));
+                    renderLines({ type: "LineString", coordinates: [ip(t), p2] });
+                })
+                .end();
+        }
+    }
+    
+    function renderLines(arc) {
+        globe.selectAll('path').remove(); 
+    
+        svg.append('path')
+            .datum(arc)
+            .attr('d', path)
+            .attr('fill', 'none')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 1);
+    }
+    
+    // Start the world tour
+    worldTour(circuit_data, projection);
 }
 
+class Versor {
+    static fromAngles([l, p, g]) {
+      l *= Math.PI / 360;
+      p *= Math.PI / 360;
+      g *= Math.PI / 360;
+      const sl = Math.sin(l), cl = Math.cos(l);
+      const sp = Math.sin(p), cp = Math.cos(p);
+      const sg = Math.sin(g), cg = Math.cos(g);
+      return [
+        cl * cp * cg + sl * sp * sg,
+        sl * cp * cg - cl * sp * sg,
+        cl * sp * cg + sl * cp * sg,
+        cl * cp * sg - sl * sp * cg
+      ];
+    }
+    static toAngles([a, b, c, d]) {
+      return [
+        Math.atan2(2 * (a * b + c * d), 1 - 2 * (b * b + c * c)) * 180 / Math.PI,
+        Math.asin(Math.max(-1, Math.min(1, 2 * (a * c - d * b)))) * 180 / Math.PI,
+        Math.atan2(2 * (a * d + b * c), 1 - 2 * (c * c + d * d)) * 180 / Math.PI
+      ];
+    }
+    static interpolateAngles(a, b) {
+      const i = Versor.interpolate(Versor.fromAngles(a), Versor.fromAngles(b));
+      return t => Versor.toAngles(i(t));
+    }
+    static interpolateLinear([a1, b1, c1, d1], [a2, b2, c2, d2]) {
+      a2 -= a1, b2 -= b1, c2 -= c1, d2 -= d1;
+      const x = new Array(4);
+      return t => {
+        const l = Math.hypot(x[0] = a1 + a2 * t, x[1] = b1 + b2 * t, x[2] = c1 + c2 * t, x[3] = d1 + d2 * t);
+        x[0] /= l, x[1] /= l, x[2] /= l, x[3] /= l;
+        return x;
+      };
+    }
+    static interpolate([a1, b1, c1, d1], [a2, b2, c2, d2]) {
+      let dot = a1 * a2 + b1 * b2 + c1 * c2 + d1 * d2;
+      if (dot < 0) a2 = -a2, b2 = -b2, c2 = -c2, d2 = -d2, dot = -dot;
+      if (dot > 0.9995) return Versor.interpolateLinear([a1, b1, c1, d1], [a2, b2, c2, d2]); 
+      const theta0 = Math.acos(Math.max(-1, Math.min(1, dot)));
+      const x = new Array(4);
+      const l = Math.hypot(a2 -= a1 * dot, b2 -= b1 * dot, c2 -= c1 * dot, d2 -= d1 * dot);
+      a2 /= l, b2 /= l, c2 /= l, d2 /= l;
+      return t => {
+        const theta = theta0 * t;
+        const s = Math.sin(theta);
+        const c = Math.cos(theta);
+        x[0] = a1 * c + a2 * s;
+        x[1] = b1 * c + b2 * s;
+        x[2] = c1 * c + c2 * s;
+        x[3] = d1 * c + d2 * s;
+        return x;
+      };
+    }
+  }

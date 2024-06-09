@@ -22,7 +22,22 @@ body {
 }
 
 .title {
+  text-align: center; 
+  display: flex;
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+}
+
+.title h1{
   font-family: 'Formula1-Bold';
+  font-size: 18px;
+
+}
+
+.title h2 {
+  font-family: 'Formula1-Regular';
+  font-size: 15px;
 }
 
 #globe {
@@ -82,7 +97,7 @@ body {
 
 .year-label {
   text-align: left;
-  margin-bottom: 5px;
+  margin-top: 7px;
 }
 
 .year-label.bold {
