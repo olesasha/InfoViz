@@ -90,6 +90,22 @@ function update_driver_pos_first_lap(year, round_number) {
 
 
             lap_data = Object.values(lap_data)
+
+            svg.selectAll(".line-border")
+            .data(lap_data)
+            .enter()
+            .append("path")
+            .attr("class", "line-border")
+            .attr("d", function (d) {
+                // Generate the line path string
+                return d3.line()
+                    .x(function (d) { return x(d.lap); }) // Access the lap value
+                    .y(function (d) { return y(d.pos); })(d.values); // Access the position value
+            })
+            .attr("stroke", "black") // Set stroke color
+            .attr("stroke-width", 4.5)
+            .style("fill", "none");
+
             svg.selectAll(".line")
                 .data(lap_data)
                 .enter()
@@ -102,7 +118,9 @@ function update_driver_pos_first_lap(year, round_number) {
                         .y(function (d) { return y(d.pos); })(d.values); // Access the position value
                 })
                 .attr("stroke", d => d.color) // Set stroke color
+                .attr("stroke-width", 4)
                 .style("fill", "none");
+
 
 
             const lap_data_dots = lap_data.map(d => {
@@ -137,6 +155,15 @@ function update_driver_pos_chart(year, round_number, lap) {
             lap_data = Object.values(lap_data)
 
             console.log(lap_data);
+            svg.selectAll(".line-border")
+            .data(lap_data)
+            .attr("d", function (d) {
+                // Generate the line path string
+                return d3.line()
+                    .x(function (d) { return x(d.lap); }) // Access the lap value
+                    .y(function (d) { return y(d.pos); })(d.values); // Access the position value
+            })
+
             svg.selectAll(".line")
                 .data(lap_data)
                 .attr("d", function (d) {
@@ -146,6 +173,8 @@ function update_driver_pos_chart(year, round_number, lap) {
                         .y(function (d) { return y(d.pos); })(d.values); // Access the position value
                 })
                 .attr("stroke", d => d.color) // Set stroke color
+  
+
 
 
 
