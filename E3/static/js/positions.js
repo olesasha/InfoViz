@@ -11,13 +11,7 @@ var concatenated_driver_pos
 var selectedMetric = "--"
 var svg
 
-// Sample data
-const data = [
-    { name: "Line 1", values: [{ x: 0, y: 30 }, { x: 1, y: 40 }, { x: 2, y: 25 }, { x: 3, y: 45 }, { x: 4, y: 35 }] },
-    { name: "Line 2", values: [{ x: 0, y: 20 }, { x: 1, y: 35 }, { x: 2, y: 45 }, { x: 3, y: 30 }, { x: 4, y: 50 }] },
-    { name: "Line 3", values: [{ x: 0, y: 45 }, { x: 1, y: 25 }, { x: 2, y: 35 }, { x: 3, y: 20 }, { x: 4, y: 40 }] }
-];
-console.log(data)
+
 let positions = [];
 let laps = [];
 let years = [];
@@ -154,7 +148,6 @@ function update_driver_pos_chart(year, round_number, lap) {
         .then(function (lap_data) {
             lap_data = Object.values(lap_data)
 
-            console.log(lap_data);
             svg.selectAll(".line-border")
             .data(lap_data)
             .attr("d", function (d) {
