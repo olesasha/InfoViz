@@ -1,5 +1,5 @@
 export { init_circuit, set_circuit_sasha }
-import { update_driver_pos_chart, update_driver_pos_first_lap, adjust_x_axis_pos_plot} from "./positions.js";
+import { update_driver_pos_chart, update_driver_pos_first_lap, adjust_x_axis_pos_plot } from "./positions.js";
 
 // Global Variables
 var driver_dots, x_scale, y_scale, race_interval, line_circuit, svg, width, height, race_data, total_laps, last_index
@@ -16,7 +16,7 @@ var current_leader = 1
 
 function init_circuit(circuit_data) {
     update_race_data_and_race(selected_year, selected_round)
-    update_driver_pos_first_lap(selected_year,selected_round)
+    update_driver_pos_first_lap(selected_year, selected_round)
     calculate_width_and_height(circuit_data)
     render_select(circuit_data)
     render_circuit(circuit_data)
@@ -116,12 +116,17 @@ function resume_race() {
 function animate_race(index) {
 
     function update(i) {
+        try {
+            driver_dots.transition()
+                .duration(animation_speed)
+                .ease(d3.easeLinear)  // Use linear easing function
+                .attr("cx", d => x_scale(d.positions[i].x))
+                .attr("cy", d => y_scale(d.positions[i].y))
 
-        driver_dots.transition()
-            .duration(animation_speed)
-            .ease(d3.easeLinear)  // Use linear easing function
-            .attr("cx", d => x_scale(d.positions[i].x))
-            .attr("cy", d => y_scale(d.positions[i].y))
+        } catch (TypeError) {
+            stop_race()
+        }
+
 
     }
 
@@ -162,7 +167,9 @@ function update_circuit(circuit_data) {
         return (d["round_number"] == selected_round && d["year"] == selected_year)
     })
     calculate_width_and_height(circuit_data)
-    update_driver_pos_first_lap(selected_year,selected_round)
+    update_driver_pos_first_lap(selected_year, selected_round)
+
+    global_index = 0
 
     d3.select('#circuit').selectAll("*").remove();
     render_circuit(circuit_data)
@@ -291,48 +298,56 @@ function init_lap_counter_and_slider(rd) {
         resume_race()
     })
 }
-
 function update_lap(index) {
-
     function update(driver_index) {
-        current_leader = driver_index
-        current_lap = race_data[driver_index]["lap"][index]["LapNumber"]
-        d3.select("#lap_display").text(`${current_lap}/${total_laps}`)
-        update_driver_pos_chart(selected_year, selected_round, current_lap)
+        current_leader = driver_index;
+        current_lap = race_data[driver_index]["lap"][index]["LapNumber"];
+        d3.select("#lap_display").text(`${current_lap}/${total_laps}`);
+        update_driver_pos_chart(selected_year, selected_round, current_lap);
     }
 
-
-    if (race_data[current_leader]["pos"][index]["Position"] == 1 ) {
-        if (race_data[current_leader]["lap"][index]["LapNumber"] != current_lap) {
-            update(current_leader)
-        }
-    }
-    else {
-        for (var i = 0; i < race_data.length; i++) {
-            // get driver in first
+    function get_leading_driver() {
+        for (let i = 0; i < race_data.length; i++) {
             if (race_data[i]["pos"][index]["Position"] == 1) {
-                if (race_data[i]["lap"][index]["LapNumber"] != current_lap) {
-                    update(i)
-                    break
-                }
+                return i;
             }
         }
+        return -1; // Falls kein führender Fahrer gefunden wird
+    }
+
+    let leading_driver_index = get_leading_driver();
+
+    if (leading_driver_index !== -1 && race_data[leading_driver_index]["lap"][index]["LapNumber"] != current_lap) {
+        update(leading_driver_index);
     }
 }
 
+
 function update_animation_lap(new_lap) {
 
-    var min_index = Infinity
-    race_data.forEach((d,index) => {
-        var temp_index = d.lap.findIndex(d => d.LapNumber == new_lap)
-        if (temp_index >= 0){
-            if (temp_index < min_index){
-                min_index = temp_index
-                current_leader = index
+    let current_leader = -1;
+    
+    race_data.forEach((race, raceIndex) => {
+        try {
+            const temp_index = race.lap.findIndex(lap => lap.LapNumber == new_lap);
+            if (temp_index != -1 && race.pos[temp_index].Position == 1) {
+                console.log(`temp_index: ${temp_index}`);
+                console.log(`LapNumber: ${race.lap[temp_index].LapNumber}`);
+                console.log(`Race Data:`, race);
+                
+                global_index = temp_index;
+                current_leader = raceIndex;
+            }
+        } catch (error) {
+            if (error instanceof TypeError) {
+                console.error('TypeError encountered:', error);
+            } else {
+                throw error;  // Re-throw if it's not the expected TypeError
             }
         }
     });
-    global_index = min_index
+    console.log(`Global Index: ${global_index}`);
+    console.log(`Current Leader: ${current_leader}`);
 
 }
 

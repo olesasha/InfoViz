@@ -282,8 +282,7 @@ function render_globe(globe_data, circuit_data) {
     }
     
     // Start the world tour
-    //worldTour(circuit_data, projection);
-}
+    worldTour(circuit_data, projection);}
 
 class Versor {
     static fromAngles([l, p, g]) {
