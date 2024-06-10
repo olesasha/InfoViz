@@ -35,7 +35,7 @@ def update_circuit_data(season):
 # the function fetches the data on the server using the getter functions defined above
 def index():
     globe_data = get_world_data()
-    circuit_data = get_circuit_data(2019)  # Initial data for the default season
+    circuit_data = get_circuit_data(2020)  # Initial data for the default season
     return render_template("index.html", globe_data=globe_data, circuit_data=circuit_data)
 
 # initiate the server in debug mode
