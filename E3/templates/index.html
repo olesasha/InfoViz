@@ -1,56 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- header -->
-
 <head>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project</title>
+  <title>Formula 1 Race Explorer</title>
   <link rel="stylesheet" type="text/css" href="{{url_for('static',filename='styles/style.css')}}">
 </head>
 
 <body>
 
-  <div class="title">
-    <h1>Formula 1</h1>
-    <h2>Exploratory Analysis</h2>
-</div>
+  <div id="start_page" class="active">
+    <div class="background-image"></div>
+    <div class="logo-container">
+      <img src="../static/styles/logo.webp">
+    </div>
+    <div class="title">
+      <h1>Formula 1</h1>
+      <h2>Exploratory analysis of F1 races through the years</h2>      
+    </div>
+    <div class="footer">
+      Maximilian Laurent Heß, Oleksandra Kravchenko | InfoVis 2024
+    </div>
 
-  
-<div id="container">
-  <div id="slider-container">
-    <div id="slider"></div>
-    <div id="years-labels"></div>
+    <div id="slider-container">
+      <div class="slider-text"> Choose a year</div>
+      <div id="year-slider"></div>
+      <div id="years-labels"></div>
+    </div>
+
+      <div id="globe"></div>
+    
+    <button id="hidden_switch_to_race_page" style="display: none;">Go to Race Page</button>
   </div>
-  <div id="globe"></div>
-</div>
 
-<script src="https://d3js.org/d3.v7.min.js"></script>
-<script type="module" src="../static/js/globe.js"></script>
+  <div id="race_page">
+    <div id="circuit_container">
+      <div id="circuit"></div>
+      <button id="start_race" class="race-button">(Re-) Start Race</button>
+      <button id="stop_race" class="race-button">Stop Race</button>
+      <button id="resume_race" class="race-button">Resume Race</button>
+      <button id="remove_highlights" class="race-button">Remove highlights</button>
+      <div id="lap_display"></div>
+      <div class="slidecontainer">
+        <label for="speedSlider" style="font-size: 12px;">Race speed: </label>
+        <input type="range" id="speedSlider" min="-200" max="-20" value="-200" class="slider">
+      </div>
+      <div class="slidecontainer">
+        <label for="lapSlider" style="font-size: 12px;">Select lap:</label>
+        <input type="range" name="lapSlider" id="lapSlider" min="1" max="30" value="1" class="slider">
+      </div>
+    </div>
+    <div>
+      <div id="pos_plot"></div>
+      <div id="tyre_plot"></div>
+      <div class="button-container">
+        <button id="switch_to_start_page"></button>
+        <label for="switch_to_start_page" class="button-label">Back to race select</label>
+      </div>
+    <div class="footer">
+      Maximilian Laurent Heß, Oleksandra Kravchenko | InfoVis 2024
+    </div>
 
-<script type="module">
-  import { init_globe } from "../static/js/globe.js";
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script type="module" src="../static/js/globe.js"></script>
+  <script type="module" src="../static/js/circuit.js"></script>
+  <script type="module" src="../static/js/positions.js"></script>
+  <script type="module" src="../static/js/tyres.js"></script>
 
-  const globe_data = {{ globe_data | safe }};
-  const circuit_data = {{ circuit_data | safe }};
+  <script type="module">
+    import { init_globe } from "../static/js/globe.js";
 
-  init_globe(globe_data, circuit_data);
+    const globe_data = {{ globe_data | safe }};
+    const circuit_geo_data = {{ circuit_geo_data | safe }};
 
-  // update circuit data
-  function updateCircuitData(season) {
-    fetch(`/update_circuit_data/${season}`)
+    init_globe(globe_data, circuit_geo_data);
+
+    // update circuit data
+    function updateGeoCircuitData(season) {
+      fetch(`/update_circuit_geo_data/${season}`)
         .then(response => response.json())
         .then(data => {
-            // Update globe visualization with new data
-            init_globe(globe_data, data); // Pass data directly without parsing
+          // Update globe visualization with new data
+          init_globe(globe_data, data); // Pass data directly without parsing
         })
         .catch(error => {
-            console.error('Error updating circuit data:', error);
+          console.error('Error updating circuit data:', error);
         });
-}
-</script>
+    }
+  </script>
+
+  <script type="module">
+    import { init_circuit } from "../static/js/circuit.js";
+    import { init_pos_plot } from "../static/js/positions.js";
+    import { init_tyre_plot } from "../static/js/tyres.js"
+    init_pos_plot();
+    init_circuit({{ circuit_data | safe }});
+    init_tyre_plot()
+  </script>
 
 </body>
 

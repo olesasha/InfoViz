@@ -1,46 +1,43 @@
 // exports and imports for the module
-export { init_globe, set_year };
+export { init_globe };
+import { set_circuit_from_globe, stop_race} from "./circuit.js";
 
 // global variable to track rotation permission
 let rotationAllowed = true;
 
 // global variables for connection
-let selectedYear_global;
-
-// setter function for year
-function set_year(year) {
-    selectedYear_global = year;
-    console.log(selectedYear_global);
-}
+window.selectedYear_global = 2020;
+window.selectedCircuit_global = "Styrian Grand Prix";
 
 
 // init function that is called by the backend at the start 
-function init_globe(globe_data, circuit_data) {
-    render_globe(globe_data, circuit_data);
+function init_globe(globe_data, circuit_geo_data) {
+    render_globe(globe_data, circuit_geo_data);
 }
 
 // CONSTANTS
 // colors
 const GLOBE_FILL = "#EEE";
-const COUNTRY_FILL = "#FF6961";
-const LOC_COLOR = "navy";
+const COUNTRY_FILL = "#ff392e";
+const LOC_COLOR = "black";
+const LINE_COLOR = "black";
 
 // dimensions
 let GLOBE_WIDTH = window.innerWidth;
 let GLOBE_HEIGHT = window.innerHeight;
 let GLOBE_RADIUS = 400;
 let GLOBE_CENTER = [GLOBE_WIDTH / 2, GLOBE_HEIGHT / 2];
-let TILT = 35;
+let TILT = 30;
 const DOT_RADIUS = 5;
 
 // interaction
 const DRAG_SENSITIVITY = 50;
 
 // main rendering function for the globe
-function render_globe(globe_data, circuit_data) {
+function render_globe(globe_data, circuit_geo_data) {
 
     // mapping circuit location data to the world data
-    const circuit_countries = new Set(circuit_data.map(data => data.country)); 
+    const circuit_countries = new Set(circuit_geo_data.map(data => data.country)); 
     // tooltip
     const globe_tooltip = d3.select("body")
         .append("div")
@@ -104,17 +101,15 @@ function render_globe(globe_data, circuit_data) {
                 ];
                 projection.rotate(newRotation);
     
-                // Update pins' positions and visibility only if continueWorldTour is false
-                if (!rotationAllowed) {
+                // Update pins' positions and visibility 
                     svg.selectAll(".pin")
                         .attr("transform", function(d) {
                             const coords = [d.long, d.lat];
                             const visibility = isInView(projection, coords) ? "visible" : "hidden";
                             return "translate(" + projection(coords) + ") scale(" + (visibility === "visible" ? 1 : 0) + ")";
                         });
-                }
     
-                path = d3.geoPath().projection(projection);
+              //  path = d3.geoPath().projection(projection);
     
                 svg.selectAll("path").attr("d", path); // redraw all paths with the new projection
             }
@@ -125,7 +120,7 @@ function render_globe(globe_data, circuit_data) {
             // update the scale of the projection based on zoom level
             if (event.transform.k > 0.3) {
                 projection.scale(initialScale * event.transform.k);
-                path = d3.geoPath().projection(projection);
+                //path = d3.geoPath().projection(projection);
                 svg.selectAll("path").attr("d", path); // redraw all paths with the new scale
                 globe.attr("r", projection.scale()); // update the globe's radius
 
@@ -143,11 +138,12 @@ function render_globe(globe_data, circuit_data) {
 
     
         svg.selectAll(".pin")
-            .data(circuit_data)
+            .data(circuit_geo_data)
             .enter().append("circle")
             .attr("class", "pin")
             .attr("r", DOT_RADIUS)
             .attr("fill", LOC_COLOR) 
+            .attr("opacity", 0.7) 
             .attr("transform", function(d) {
                 const coords = [d.long, d.lat]; 
                 const visibility = isInView(projection, coords) ? "visible" : "hidden";
@@ -161,8 +157,16 @@ function render_globe(globe_data, circuit_data) {
             })
             .on("mouseout", function() {
                 globe_tooltip.style("display", "none");
+            })
+            .on("mousedown", function(event, d) {
+                setTimeout(function() {
+                    window.selectedCircuit_global = d.gp_name;
+                    set_circuit_from_globe(selectedYear_global, d.round_number);
+                    showRacePage(); // Switch to the race page
+                }, 250); 
             });
-    
+
+        
         // Function to check if a point is within the visible area of the globe
         function isInView(projection, coords) {
             const [x, y] = projection(coords);
@@ -177,27 +181,30 @@ function render_globe(globe_data, circuit_data) {
         const years = Array.from({ length: 5 }, (_, index) => 2020 + index);
     
         const sliderContainer = d3.select("#slider-container");
-        
-        // Check if the slider already exists
-        const existingSlider = sliderContainer.select("#slider input");
-        if (!existingSlider.empty()) {
-            return; // Slider already exists, no need to recreate
+    
+        // Check if the slider input already exists
+        const existingSlider = sliderContainer.select("#year-slider");
+        const existingSliderInput = existingSlider.select("input");
+        if (!existingSliderInput.empty()) {
+            return; // Slider input already exists, no need to recreate
         }
     
         // Append the slider input element
-        const slider = sliderContainer.select("#slider")
+        const slider = existingSlider
             .append("input")
             .attr("type", "range")
             .attr("min", 0)
             .attr("max", years.length - 1)
             .attr("value", 0)
             .attr("step", 1)
+            .classed("slider", true)
             .on("input", function() {
                 const selectedYearIndex = +this.value;
                 const selectedYear = years[selectedYearIndex];
-                updateData(selectedYear); // update data based on selected year
+                updateData(selectedYear); // Update data based on selected year
                 updateLabels(selectedYearIndex); 
-                set_year(selectedYear);  // write global var
+                window.selectedYear_global = selectedYear;  // Write global var
+                rotationAllowed = true; // Restart the globe rotation when another year is chosen
             });
     
         // Append the year labels
@@ -208,48 +215,53 @@ function render_globe(globe_data, circuit_data) {
             .enter()
             .append("div")
             .attr("class", "year-label")
-            .style("text-align", "left")
             .text(d => d);
-
+    
         function updateLabels(selectedYearIndex) {
             labelsContainer.selectAll("div")
                 .classed("bold", (d, i) => i === selectedYearIndex)
                 .classed("normal", (d, i) => i !== selectedYearIndex);
         }
-            
+    
         // Initialize the labels with the first year highlighted
         updateLabels(0);
     }
-    
+
+
     function updateData(selectedYear) {
-        d3.json(`/update_circuit_data/${selectedYear}`)
-            .then(function(circuit_data) {
-                // Call a function to update globe visualization with new data
-                updateGlobe(globe_data, circuit_data);
-            })
-            .catch(function(error) {
-                console.error("Error updating data:", error);
-            });
+        return new Promise((resolve, reject) => {
+            d3.json(`/update_circuit_geo_data/${selectedYear}`)
+                .then(function(circuit_geo_data) {
+                    // Call a function to update globe visualization with new data
+                    updateGlobe(globe_data, circuit_geo_data);
+                    resolve(circuit_geo_data); // Resolve the promise with the updated data
+                })
+                .catch(function(error) {
+                    console.error("Error updating data:", error);
+                    reject(error); // Reject the promise with the error
+                });
+        });
     }
     
     initSlider();
     
-    function updateGlobe(globe_data, circuit_data) {
+    function updateGlobe(globe_data, circuit_geo_data) {
         // remove existing elements from the svg
         d3.select('#globe').selectAll("*").remove();
         // re-render the globe with the new data
-        render_globe(globe_data, circuit_data);
+        render_globe(globe_data, circuit_geo_data);
     }
     
-    async function worldTour(circuit_data, projection) {
-        const tilt = 20;
-        const duration = 2000; // Increase duration for smoother animation
+    // modified template: https://observablehq.com/@d3/world-tour?intent=fork
+    async function worldTour(circuit_geo_data, projection) {
+        const tilt = 10; // different tilt for the rotation
+        const duration = 1750; 
     
-        for (let i = 0; i < circuit_data.length - 1; i++) {
-            if (!rotationAllowed) break; // check if animation should stop
+        for (let i = 0; i < circuit_geo_data.length - 1; i++) {
+            if (!rotationAllowed) break; // Check if animation should stop
     
-            const p1 = [circuit_data[i].long, circuit_data[i].lat];
-            const p2 = [circuit_data[i + 1].long, circuit_data[i + 1].lat];
+            const p1 = [circuit_geo_data[i].long, circuit_geo_data[i].lat];
+            const p2 = [circuit_geo_data[i + 1].long, circuit_geo_data[i + 1].lat];
     
             const r1 = [-p1[0], tilt - p1[1], 0];
             const r2 = [-p2[0], tilt - p2[1], 0];
@@ -260,10 +272,13 @@ function render_globe(globe_data, circuit_data) {
             await d3.transition()
                 .duration(duration)
                 .tween("rotate", () => t => {
-                    if (!rotationAllowed) return; // check if animation should stop
+                    if (!rotationAllowed) return; // Check if animation should stop
                     projection.rotate(iv(t));
+    
                     // Redraw all paths with the updated projection
                     svg.selectAll("path").attr("d", path);
+                    // Update pins' positions and visibility
+                    updatePins(projection);
                     // Render the lines
                     renderLines({ type: "LineString", coordinates: [p1, ip(t)] });
                 })
@@ -271,19 +286,33 @@ function render_globe(globe_data, circuit_data) {
         }
     }
     
-    function renderLines(arc) {
+    // Update pin positions and visibility
+    function updatePins(projection) {
+        svg.selectAll(".pin")
+            .attr("transform", d => {
+                const coords = [d.long, d.lat];
+                const visibility = isInView(projection, coords) ? "visible" : "hidden";
+                return `translate(${projection(coords)}) scale(${visibility === "visible" ? 1 : 0})`;
+            });
+    }
     
+    function renderLines(arc) {
+
         svg.append('path')
-            .datum(arc)
-            .attr('d', path)
-            .attr('fill', 'none')
-            .attr('stroke', LOC_COLOR)
-            .attr('stroke-width', 1);
+        .datum(arc)
+        .attr('d', path)
+        .attr('fill', 'none')
+        .attr('stroke', LINE_COLOR)
+        .attr('stroke-width', 2)
+        .style('opacity', 0.06);
     }
     
     // Start the world tour
-    worldTour(circuit_data, projection);}
+    worldTour(circuit_geo_data, projection);
+}
 
+
+// template: https://observablehq.com/@d3/world-tour?intent=fork
 class Versor {
     static fromAngles([l, p, g]) {
       l *= Math.PI / 360;
@@ -337,5 +366,27 @@ class Versor {
         x[3] = d1 * c + d2 * s;
         return x;
       };
+    }}
+
+// TRANSITION FROM GLOBE TO CIRCUIT AND BACK
+function showRacePage() {
+    document.getElementById('start_page').style.display = 'none';
+    document.getElementById('race_page').style.display = 'flex';
     }
-  }
+    
+    // Function to switch to the start page
+    function showStartPage() {
+    stop_race()
+    document.getElementById('race_page').style.display = 'none';
+    document.getElementById('start_page').style.display = 'flex';
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+    // Initially display the start page and hide the race page
+    document.getElementById('start_page').style.display = 'flex';
+    document.getElementById('race_page').style.display = 'none';
+    
+    // Add event listeners to the buttons
+    //document.getElementById('switch_to_race_page').addEventListener('click', showRacePage);
+    document.getElementById('switch_to_start_page').addEventListener('click', showStartPage);
+    });

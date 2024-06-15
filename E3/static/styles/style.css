@@ -11,88 +11,131 @@
   font-weight: bold;
   font-style: normal;
 }
+/* Ensure both pages are absolutely positioned within a parent container */
+#start_page {
+  position: fixed;
+  top: 0;
+  left: 1vw; 
+  width: 99vw; 
+  height: 100vh;
+}
+
+#start_page {
+  display: flex; /* Show the start page initially */
+  justify-content: center; 
+  align-items: center; 
+}
+
+.background-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: url('background.png'); 
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: -5;
+}
+
+.logo-container {
+  position: absolute;
+  top: 1vh; 
+  right: 1vw;
+  width: 10vh;
+  height: 10vh; 
+  z-index: 3;
+}
+
+.logo-container img {
+  max-width: 100%;
+  max-height: 100%; 
+  display: block; 
+}
 
 body {
   font-family: 'Formula1-Regular', sans-serif;
   display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  height: 100vh; /* Use the full height of the viewport */
-  margin: 0; /* Remove default margin */
+  justify-content: center; 
+  align-items: center; 
+  height: 100vh; 
+  margin: 0; 
+  position: relative; 
+  background-color: #FAF9F6;
 }
 
 .title {
-  text-align: center; 
+  position: absolute;
+  top: 5%;
+  left: 1%;
+  width: 30%; 
+  height: 30vh; 
   display: flex;
-  flex-direction: column; 
-  align-items: center; 
-  justify-content: center; 
+  flex-direction: column;
+  align-items: left;
+  z-index: 1; 
 }
 
-.title h1{
+.title h1 {
   font-family: 'Formula1-Bold';
-  font-size: 18px;
-
+  font-size: 30px;
 }
 
 .title h2 {
   font-family: 'Formula1-Regular';
-  font-size: 15px;
+  font-size: 20px;
+  color:#4f4e4e;
+}
+
+.footer {
+  position: fixed;
+  bottom: 10px;
+  bottom: 10px;
+  left: 10px;
+  font-size: 8px;
+  z-index: 10;
 }
 
 #globe {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 80vw;  /*  viewport width */
-  height: 80vh; /*  viewport height */
-}
-
-#globe_tooltip {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.8); /* semi-transparent white background */
-  border: 1px solid black;
-  border-radius: 10px; /* rounded corners */
-  padding: 10px; 
-  display: none;
-  pointer-events: none; /* prevent tooltip from interfering with mouse events */
-  z-index: 10; /* ensure tooltip is on top */
-  font-size: 12px;
-  font-family: 'Formula1-Bold', sans-serif; 
-}
-
-.tooltip-bold {
-  font-family: 'Formula1-Bold', sans-serif;
-}
-
-.tooltip-regular {
-  font-family: 'Formula1-Regular', sans-serif;
-}
-
-#container {
-  display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  height: 100vh; /* Use the full height of the viewport */
-  margin: 0; /* Remove default margin */
+  width: 100%; 
+  height: 100%; 
+  z-index: 3; 
 }
 
 #slider-container {
+  margin-left: 10vw;
+  width: 20vw; 
+  height: 30vh;
   display: flex;
   align-items: center;
+  justify-content: center;
+  z-index: 1; 
 }
 
-#slider {
-  width: 130px; /* height of the slider */
-  height: 100px; /* width of the slider */
-  margin-right: 0px; /* margin */
-  transform: rotate(90deg); /* Rotate the slider vertically */
+#year-slider {
+  width: 18vh;
+  height: 50%; 
+  transform: rotate(90deg);
+  transform-origin: center; 
+  outline: none; 
+  z-index: 1;
+}
+
+
+.slider-text {
+  position: absolute;
+  margin-bottom: 25vh;
+  margin-left: 7vw;
+  text-align: right;
+  font-size: 14px;
+  white-space: nowrap; /* Prevent text from wrapping */
 }
 
 #years-labels {
-  display: inline-block; /* Display the labels container as an inline-block */
-  vertical-align: top; /* Align the labels to the top of the slider */
-  margin-left: 0px; /* Adjust margin as needed */
+  display: inline-block; 
+  vertical-align: top; 
+  margin-left: 0px; 
 }
 
 .year-label {
@@ -106,4 +149,181 @@ body {
 
 .year-label.normal {
   color: black;
+}
+
+#globe_tooltip {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8); 
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 10px; 
+  display: none;
+  pointer-events: none; 
+  z-index: 10; 
+  font-size: 12px;
+  font-family: 'Formula1-Bold', sans-serif; 
+}
+
+.tooltip-bold {
+  font-family: 'Formula1-Bold', sans-serif;
+}
+
+.tooltip-regular {
+  font-family: 'Formula1-Regular', sans-serif;
+}
+
+
+/* RACE PAGE */ 
+
+#race_page {
+  position: fixed;
+  width: 98vw;
+  height: 98vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2vw;
+}
+.button-container {
+  position: fixed;
+  width: 50px;
+  height: 70px;
+  top: 10px; 
+  left: 10px; 
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; 
+  justify-content: center;
+}
+
+#switch_to_start_page {
+  width: 40px;
+  height: 40px;
+  background-image: url('globe.png');
+  background-color: transparent;
+  background-size: cover;
+  background-position: left center; 
+  background-repeat: no-repeat;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.button-label {
+  font-size: 8px;
+  margin-top: 5px;
+  text-align: center; 
+}
+
+#circuit_container{
+  width: 50%;
+  margin-top: 0px;
+  height: auto;
+  box-sizing: border-box;
+  z-index: -1;
+}
+
+.dot_labels {
+  font-size: 10px;
+  fill: black;
+  font-family: 'Formula1-Regular', sans-serif;
+  background: rgba(255, 255, 255, 0.8); 
+  z-index: 10; 
+  padding: 2px; 
+  border-radius: 3px;
+}
+
+#driver_tooltip {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8); 
+  padding: 6px;
+  border-radius: 10px; 
+  display: none;
+  pointer-events: none; 
+  z-index: 10; 
+  font-size: 12px;
+  font-family: 'Formula1-Bold', sans-serif; 
+}
+
+.slidecontainer {
+  width: 30%; /* Width of the outside container */
+}
+
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 7.5px;  
+  margin-top: 4px;
+  margin-bottom: 5px;
+  background: #d3d3d3;
+  outline: none;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+  opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%; 
+  background: #ff392e;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background:  #ff392e;
+  cursor: pointer;
+}
+
+#lap_display{
+  margin-top: 5px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 13px;
+  padding: 6px;
+  width: 6em;
+  text-align: center;
+  background-color: white;
+}
+
+
+.race-button:hover {
+  background-color: #f0f0f0;
+  border-color: #4f4e4e;
+}
+
+.race-button {
+  background-color: #fff;
+  border: 2px solid #ccc;
+    border-top-color: rgb(204, 204, 204);
+    border-right-color: rgb(204, 204, 204);
+    border-bottom-color: rgb(204, 204, 204);
+    border-left-color: rgb(204, 204, 204);
+  border-radius: 10px;
+  padding: 10px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Formula1-Regular', sans-serif;
+} 
+
+.pos-y-text{
+  color: red;
+}
+
+.ticks{
+  color: black;
+  font-family: 'Formula1-Regular', sans-serif;
 }
