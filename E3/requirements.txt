@@ -73,7 +73,6 @@ thefuzz==0.22.1
 threadpoolctl==3.4.0
 timple==0.1.8
 tornado==6.4
-tqdm==4.66.4
 traitlets==5.14.2
 tzdata==2024.1
 url-normalize==1.4.3
