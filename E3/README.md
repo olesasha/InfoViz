@@ -12,7 +12,7 @@ git lfs install
 4. Install the required libraries using requirements.txt
 ```
 python3 -m venv f1venv
-source venv/bin/activate
+source f1venv/bin/activate
 pip install -r requirements.txt
 ```
 5. Fetch all data files from github
@@ -21,8 +21,11 @@ git lfs pull
 ```
 6. Run the flask app from E3
 ``` 
-cd E3
 flask --app app.py run --debug 
+
+OR 
+
+python3 app.py
 ```
 
 Data sources: 
