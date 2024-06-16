@@ -14,7 +14,13 @@ var global_circuit_data
 var current_lap = 1
 var current_leader = 1
 
+var margin = { top: 50, right: 50, bottom: 50, left: 50 }
 
+
+/**
+ * Initializes the circuit by setting the global circuit data,
+ * updating race data, and rendering the circuit.
+ */
 function init_circuit(circuit_data) {
     global_circuit_data = circuit_data
     update_race_data_and_race(selected_year, selected_round)
@@ -23,8 +29,11 @@ function init_circuit(circuit_data) {
     render_circuit()
 }
 
-var margin = { top: 50, right: 50, bottom: 50, left: 50 }
 
+/**
+ * Renders the circuit based on the global circuit data and
+ * the selected year and round.
+ */
 function render_circuit() {
 
     let circuit_data = global_circuit_data.filter(function (d) {
@@ -77,7 +86,10 @@ function render_circuit() {
 
 }
 
-
+/**
+ * (Re-) starts the race by (stopping an existing race), reseting
+ * the lap counter and slider, and animating the race.
+ */
 function start_race() {
     stop_race()
 
@@ -96,17 +108,25 @@ function start_race() {
     animate_race(0)
 
 }
-
+/**
+ * Stops the race by clearing the race interval.
+ */
 function stop_race() {
     clearInterval(race_interval)
 }
 
+/**
+ * Resumes the race from the current global index.
+ */
 function resume_race() {
     stop_race()
     animate_race(global_index)
 }
 
-
+/**
+ * Animates the race by transitioning driver positions and updating
+ * the global index at a set interval.
+ */
 function animate_race(index) {
     function update(i) {
         try {
@@ -134,6 +154,10 @@ function animate_race(index) {
     }, animation_speed);
 }
 
+/**
+ * Sets the selected year and round,
+ * updates the circuit, and updates race data.
+ */
 function set_circuit_from_globe(sel_year, sel_round) {
     const lap_slider = document.getElementById("lapSlider");
     lap_slider.value = 1
@@ -153,7 +177,10 @@ function set_circuit_from_globe(sel_year, sel_round) {
     update_race_data_and_race(selected_year, selected_round)
 }
 
-
+/**
+ * Updates the circuit by recalculating dimensions, updating driver
+ * positions and tire plot for the first lap, and rendering the circuit.
+ */
 function update_circuit() {
     var filtered_circuit_data = global_circuit_data.filter(function (d) {
         return (d["round_number"] == selected_round && d["year"] == selected_year)
@@ -185,7 +212,10 @@ function update_circuit() {
         )
 }
 
-// Define a function to update data based on selected year
+/**
+ * Updates race data based on the selected year and round by fetching
+ * data from the server and updating the race.
+ */
 function update_race_data_and_race(selected_year, selected_round) {
     d3.json(`/update_race_data/${selected_year}/${selected_round}`)
         .then(function (race_data) {
@@ -201,6 +231,10 @@ function update_race_data_and_race(selected_year, selected_round) {
 window.highlightedDrivers = {};
 window.anyHighlighted = false;
 
+/**
+ * Removes any highlights from the drivers and updates the driver
+ * position and tire plots.
+ */
 function remove_highlights() {
     window.highlightedDrivers = {};
     window.anyHighlighted = false;
@@ -217,6 +251,12 @@ const driver_tooltip = d3.select("body")
     .attr("id", "driver_tooltip")
     .attr("class", "tooltip");
 
+
+
+/**
+ * Updates the race by stopping the race, removing existing driver
+ * elements, and re-rendering the drivers based on the new race data.
+ */
 function update_race(race_data) {
     stop_race();
     svg.selectAll("circle").remove();
@@ -280,7 +320,10 @@ function update_race(race_data) {
 
 }
 
-
+/**
+ * Calculates the width and height of the circuit based on the
+ * aspect ratio of the circuit data.
+ */
 function calculate_width_and_height(circuit_data) {
 
     var filtered_circuit_data = circuit_data.filter(function (d) {
@@ -300,11 +343,16 @@ function calculate_width_and_height(circuit_data) {
     }
 }
 
-
+/**
+ * Sets the global race data.
+ */
 function set_race_global_race_data(rd) {
     race_data = rd
 }
-
+/**
+ * Initializes the lap counter and slider based on the race data,
+ * and sets up event listeners for the lap and speed sliders.
+ */
 function init_lap_counter_and_slider(rd) {
 
 
@@ -336,6 +384,11 @@ function init_lap_counter_and_slider(rd) {
             resume_race()
         })
 }
+
+/**
+ * Updates the current lap and updates the driver position and tire
+ * plots based on the lap index.
+ */
 function update_lap(index) {
     function update(driver_index) {
         console.log(current_lap);
@@ -365,6 +418,10 @@ function update_lap(index) {
 
 }
 
+/**
+ * Updates the animation lap by finding the index of the new lap and updating
+ * the driver position and tire plots.
+ */
 function update_animation_lap(new_lap) {
 
     race_data.forEach((race, raceIndex) => {

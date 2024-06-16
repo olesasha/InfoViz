@@ -1,5 +1,4 @@
 export { update_driver_pos_chart, init_pos_plot, update_driver_pos_first_lap, adjust_x_axis_pos_plot }
-import { update_race } from "./circuit.js";
 
 var y
 var x
@@ -10,6 +9,10 @@ var margin = { top: 40, right: 50, bottom: 40, left: 70 }
 var width = window.innerWidth / 2;
 var height = window.innerHeight / 2 - 125;
 
+
+/**
+ * Initializes the position plot by rendering the position chart.
+ */
 function init_pos_plot() {
     render_pos_chart()
 }
@@ -21,6 +24,12 @@ const driver_tooltip = d3.select("body")
     .attr("id", "driver_tooltip")
     .attr("class", "tooltip");
 
+
+
+/**
+ * Renders the position plot, including setting up the
+ * axes, labels, legend, and initial configuration for the position data.
+ */
 function render_pos_chart() {
 
     // append the svg object to the body of the page
@@ -78,11 +87,11 @@ function render_pos_chart() {
     svg.append("g")
         .attr("class", "y-axis-pos")
         .call(d3.axisLeft(y)
-            .tickSizeOuter(0)  // Hides the outer tick on the axis
+            .tickSizeOuter(0)  
             .ticks(19)
-            .tickPadding(10))  // Adjust padding between ticks and the axis
+            .tickPadding(10))  
         .selectAll(".tick line")
-        .classed("tick-line", true);  // Add class to tick lines
+        .classed("tick-line", true);
 
     svg.selectAll(".y-axis-pos .tick text")
         .attr("class", "ticks")
@@ -96,11 +105,16 @@ function render_pos_chart() {
         .y(d => y(d.pos));
 }
 
+
+/**
+ * Updates the driver positions for the first lap of the given year and round.
+ * Fetches the lap data, removes existing paths, and appends new paths and dots.
+ */
 function update_driver_pos_first_lap(year, round_number) {
     d3.json(`/get_lap_data/${year}/${round_number}/${1}`)
         .then(function (lap_data) {
 
-            
+
             lap_data = Object.values(lap_data);
 
             // Remove existing paths with the line class
@@ -126,7 +140,7 @@ function update_driver_pos_first_lap(year, round_number) {
                 .attr("stroke-width", 4) // Ensure consistent stroke width
                 .style("stroke-opacity", d => window.anyHighlighted ? (window.highlightedDrivers[d.abbr] ? 1 : 0.2) : 1)
                 .style("fill", "none")
-                .style("visibility", d => d.values[d.values.length -1].pos === 0 ? "hidden" : "visible"); // Hide line if first lap position is 0
+                .style("visibility", d => d.values[d.values.length - 1].pos === 0 ? "hidden" : "visible"); // Hide line if first lap position is 0
 
             // Map the data for dots
             const lap_data_dots = lap_data.map(d => ({
@@ -146,30 +160,30 @@ function update_driver_pos_first_lap(year, round_number) {
 
             // Append new dots
             let dots_line_plot = svg.selectAll(".dots_line_plot")
-                    .data(lap_data_dots)
-                    .enter()
-                    .append("circle")
-                    .attr("class", "dots_line_plot")
-                    .attr("cx", d => x(d.lap))
-                    .attr("cy", d => y(d.pos))
-                    .attr("r", 5)
-                    .style("fill", d => d.color)
-                    .style("opacity", d => window.anyHighlighted ? (window.highlightedDrivers[d.abbr] ? 1 : 0.2) : 1)
-                    .style("visibility", d => d.pos === 0 ? "hidden" : "visible")
-                    .on("mouseover", function (event, d) {
-                        const bbox = this.getBoundingClientRect();
-                        driver_tooltip
-                            .style("left", `${bbox.left + bbox.width / 2 + 30}px`)
-                            .style("top", `${bbox.bottom - 30}px`)
-                            .style("display", "block")
-                            .html(`<span class="tooltip-bold">${d.first_name} ${d.last_name}</span><br>
+                .data(lap_data_dots)
+                .enter()
+                .append("circle")
+                .attr("class", "dots_line_plot")
+                .attr("cx", d => x(d.lap))
+                .attr("cy", d => y(d.pos))
+                .attr("r", 5)
+                .style("fill", d => d.color)
+                .style("opacity", d => window.anyHighlighted ? (window.highlightedDrivers[d.abbr] ? 1 : 0.2) : 1)
+                .style("visibility", d => d.pos === 0 ? "hidden" : "visible")
+                .on("mouseover", function (event, d) {
+                    const bbox = this.getBoundingClientRect();
+                    driver_tooltip
+                        .style("left", `${bbox.left + bbox.width / 2 + 30}px`)
+                        .style("top", `${bbox.bottom - 30}px`)
+                        .style("display", "block")
+                        .html(`<span class="tooltip-bold">${d.first_name} ${d.last_name}</span><br>
                                 <span class="tooltip-regular">${d.team_name} <br>
                                 Current Position: ${d.pos}</span>`);
-                    })
-                    .on("mouseout", function () {
-                        driver_tooltip.style("display", "none");
-                    });
-                
+                })
+                .on("mouseout", function () {
+                    driver_tooltip.style("display", "none");
+                });
+
 
 
             svg.selectAll(".dot_labels")
@@ -185,6 +199,11 @@ function update_driver_pos_first_lap(year, round_number) {
 }
 
 
+/**
+ * Updates the driver positions for a specific lap of the given year and round.
+ * Fetches the lap data, updates paths and dots, and adjusts their visibility and appearance
+ * depending on whether the driver is selected or not.
+ */
 function update_driver_pos_chart(year, round_number, lap) {
     d3.json(`/get_lap_data/${year}/${round_number}/${lap}`)
         .then(function (lap_data) {
@@ -235,8 +254,8 @@ function update_driver_pos_chart(year, round_number, lap) {
                 .on("mouseover", function (event, d) {
                     const bbox = this.getBoundingClientRect();
                     driver_tooltip
-                        .style("left", `${bbox.left + bbox.width / 2 + 30}px`) 
-                        .style("top", `${bbox.bottom-30}px`)              
+                        .style("left", `${bbox.left + bbox.width / 2 + 30}px`)
+                        .style("top", `${bbox.bottom - 30}px`)
                         .style("display", "block")
                         .html(`<span class="tooltip-bold">${d.first_name} ${d.last_name}</span><br>
                               <span class="tooltip-regular">${d.team_name} <br>
@@ -258,6 +277,9 @@ function update_driver_pos_chart(year, round_number, lap) {
         });
 }
 
+/**
+ * Adjusts the x-axis of the position plot based on the total number of laps.
+ */
 function adjust_x_axis_pos_plot(total_laps) {
     x.domain([0, total_laps])
 

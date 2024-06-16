@@ -19,13 +19,18 @@ const compound_colors = {
     'WET': '#007BE1'
 }
 
-
+/**
+ * Initializes the tyre plot by rendering the tyre chart.
+ */
 function init_tyre_plot() {
     render_tyre_plot()
 }
 
 
-
+/**
+ * Renders the tyre plot, including setting up the
+ * axes, labels, legend, and initial configuration for the tyre data.
+ */
 function render_tyre_plot() {
 
     let svg = d3.select("#tyre_plot")
@@ -124,7 +129,7 @@ function render_tyre_plot() {
 
     // Calculate the total width required for the legend
     let totalLegendWidth = 0;
-    legend.each(function(d, i) {
+    legend.each(function (d, i) {
         const legendItem = d3.select(this);
         const textWidth = legendItem.select("text").node().getBBox().width;
         totalLegendWidth += textWidth + 50; // Add space between items
@@ -132,15 +137,19 @@ function render_tyre_plot() {
 
     // Center the legend
     let offsetX = (width + margin.left + margin.right - totalLegendWidth) / 2 - margin.left;
-    legend.each(function(d, i) {
+    legend.each(function (d, i) {
         const legendItem = d3.select(this);
         const textWidth = legendItem.select("text").node().getBBox().width;
-        legendItem.attr("transform", `translate(${80+offsetX}, ${height + 60})`);
+        legendItem.attr("transform", `translate(${80 + offsetX}, ${height + 60})`);
         offsetX += textWidth + 50; // Add space between items
     });
 }
 
-
+/**
+ * Updates the tyre plot for a specific lap of the given year and round.
+ * Fetches the tyre data, updates the rectangles representing tyre usage,
+ * and adjusts their visibility and appearance depending on whether the driver is selected or not.
+ */
 function update_tyre_plot(year, round_number, lap) {
     let passed_lap = lap
     if (lap == 1) {
@@ -176,7 +185,7 @@ function update_tyre_plot(year, round_number, lap) {
             .style("opacity", d => window.anyHighlighted ? (window.highlightedDrivers[d.Driver] ? 1 : 0.2) : 1)
             .style("stroke", "black")  // Border color
             .style("stroke-width", 0.3)
-            
+
         svg.selectAll("g.tick")
             .style("opacity", function (d) {
                 return window.anyHighlighted ? (window.highlightedDrivers[d] ? 1 : 0.2) : 1;
@@ -185,6 +194,10 @@ function update_tyre_plot(year, round_number, lap) {
 }
 
 
+
+/**
+ * Updates the tyre plot for the first lap of the given year and round.
+ */
 function update_tyre_plot_first_lap(year, round_number) {
     d3.json(`/get_tyre_data/${year}/${round_number}/${1}`).then(function (data) {
 
@@ -261,6 +274,9 @@ function update_tyre_plot_first_lap(year, round_number) {
     });
 }
 
+/**
+ * Adjusts the x-axis of the tyre plot based on the total number of laps.
+ */
 function adjust_x_axis_tyre_plot(total_laps) {
 
     const svg = d3.select("#tyre_plot").select("svg").select("g");
