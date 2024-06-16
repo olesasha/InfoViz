@@ -20,8 +20,10 @@
   height: 100vh;
 }
 
+/* START PAGE */
+
 #start_page {
-  display: flex; /* Show the start page initially */
+  display: flex; 
   justify-content: center; 
   align-items: center; 
 }
@@ -129,7 +131,7 @@ body {
   margin-left: 7vw;
   text-align: right;
   font-size: 14px;
-  white-space: nowrap; /* Prevent text from wrapping */
+  white-space: nowrap; 
 }
 
 #years-labels {
@@ -246,7 +248,7 @@ body {
 }
 
 .slidecontainer {
-  width: 30%; /* Width of the outside container */
+  width: 30%; 
 }
 
 
@@ -265,8 +267,10 @@ body {
 
 /* Mouse-over effects */
 .slider:hover {
-  opacity: 1; /* Fully shown on mouse-over */
+  opacity: 1; 
 }
+
+/* Custom slider */
 
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -298,6 +302,7 @@ body {
   background-color: white;
 }
 
+/* Custom buttons */
 
 .race-button:hover {
   background-color: #f0f0f0;

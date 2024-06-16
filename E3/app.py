@@ -22,7 +22,6 @@ def rotate(xy, *, angle):
     return np.matmul(xy, rot_mat)
 
 def get_circuit_data():
-    # Temp development solution
     df_circuits = pd.read_parquet("./static/data/all_tracks_new.parquet")
     return df_circuits.to_json(orient="records")
 
@@ -113,10 +112,7 @@ def update_race_data(year, round_number):
         ]
     )
 
-    # Convert to dictionary
     drivers = grouped.collect().to_dicts()
-
-    # Convert to JSON
     drivers_json = json.dumps(drivers)
 
     return drivers_json
@@ -159,15 +155,15 @@ def get_lap_data(year, round_number, lap):
 
     max_len = lap
 
-    # Create the output dictionary from the grouped_lap_data DataFrame
+    # create the output dictionary from the grouped_lap_data DataFrame
     for row in grouped_lap_data.collect().rows():
         driver_number, driver_name, lap_numbers, positions, team_color, team_name, first_name, last_name, abbreviation = row
 
-        # Get the last lap number and position for padding
+        # get the last lap number and position for padding
         last_position = positions[-1]
         last_lap = lap_numbers[-1]
 
-        # Extend lap_numbers and positions arrays to ensure they have the same length
+        # extend lap_numbers and positions arrays to ensure they have the same length
         lap_numbers.extend([last_lap] * (max_len - len(lap_numbers)))
         positions.extend([last_position] * (max_len - len(positions)))
 
@@ -222,8 +218,6 @@ def get_tyre_data(year, round_number, lap):
     
     return jsonify(output_dict)
 
-#if __name__ == "__main__":
-#    app.run(debug=True)
 
 # main page
 @app.route("/")
@@ -236,6 +230,6 @@ def index():
                         circuit_geo_data=circuit_geo_data,
                         circuit_data=get_circuit_data())
 
-# Initiate the server in debug mode
+# initiate the server in debug mode
 if __name__ == "__main__":
     app.run(debug=True)

@@ -5,12 +5,15 @@ import { set_circuit_from_globe, stop_race} from "./circuit.js";
 // global variable to track rotation permission
 let rotationAllowed = true;
 
-// global variables for connection
+// global variables for connection and defaults
 window.selectedYear_global = 2020;
 window.selectedCircuit_global = "Styrian Grand Prix";
 
 
-// init function that is called by the backend at the start 
+/**
+ * Initializes the globe with location data of the circuits and borders of the countries
+ */
+
 function init_globe(globe_data, circuit_geo_data) {
     render_globe(globe_data, circuit_geo_data);
 }
@@ -33,7 +36,10 @@ const DOT_RADIUS = 5;
 // interaction
 const DRAG_SENSITIVITY = 50;
 
-// main rendering function for the globe
+/**
+ * Main rendering function for the globe
+ */
+
 function render_globe(globe_data, circuit_geo_data) {
 
     // mapping circuit location data to the world data
@@ -89,7 +95,7 @@ function render_globe(globe_data, circuit_geo_data) {
         .style('stroke-width', 0.3)
         .style("opacity",0.8);
     
-        svg.call(d3.drag()
+        svg.call(d3.drag()          // draging
         .on('drag', function(event) {
             if (!rotationAllowed) {
                 const rotate = projection.rotate();
@@ -108,19 +114,17 @@ function render_globe(globe_data, circuit_geo_data) {
                             const visibility = isInView(projection, coords) ? "visible" : "hidden";
                             return "translate(" + projection(coords) + ") scale(" + (visibility === "visible" ? 1 : 0) + ")";
                         });
-    
-              //  path = d3.geoPath().projection(projection);
-    
+        
                 svg.selectAll("path").attr("d", path); // redraw all paths with the new projection
             }
         }))
-        .call(d3.zoom()
+        .call(d3.zoom()         // zooming
         .scaleExtent([0.3, Infinity])
         .on('zoom', function(event) {
             // update the scale of the projection based on zoom level
             if (event.transform.k > 0.3) {
                 projection.scale(initialScale * event.transform.k);
-                //path = d3.geoPath().projection(projection);
+
                 svg.selectAll("path").attr("d", path); // redraw all paths with the new scale
                 globe.attr("r", projection.scale()); // update the globe's radius
 
@@ -167,7 +171,10 @@ function render_globe(globe_data, circuit_geo_data) {
             });
 
         
-        // Function to check if a point is within the visible area of the globe
+    /**
+     * Check if the point should be visible depending on the rotation position of the globee
+     */
+
         function isInView(projection, coords) {
             const [x, y] = projection(coords);
             const [centerX, centerY] = projection.invert([GLOBE_WIDTH / 2, GLOBE_HEIGHT / 2]);
@@ -176,20 +183,23 @@ function render_globe(globe_data, circuit_geo_data) {
             return distance <= Math.PI / 2 && x >= 0 && x <= GLOBE_WIDTH && y >= 0 && y <= GLOBE_HEIGHT;
     }
 
+    /**
+     * Initializes the year slider
+     */
+
     function initSlider() {
-        // Hardcoded years from 2020 to 2024
         const years = Array.from({ length: 5 }, (_, index) => 2020 + index);
     
         const sliderContainer = d3.select("#slider-container");
     
-        // Check if the slider input already exists
+        // check if the slider input already exists
         const existingSlider = sliderContainer.select("#year-slider");
         const existingSliderInput = existingSlider.select("input");
         if (!existingSliderInput.empty()) {
-            return; // Slider input already exists, no need to recreate
+            return; // slider input already exists, no need to recreate
         }
     
-        // Append the slider input element
+        // append the slider input element
         const slider = existingSlider
             .append("input")
             .attr("type", "range")
@@ -201,13 +211,13 @@ function render_globe(globe_data, circuit_geo_data) {
             .on("input", function() {
                 const selectedYearIndex = +this.value;
                 const selectedYear = years[selectedYearIndex];
-                updateData(selectedYear); // Update data based on selected year
+                updateData(selectedYear); // update data based on selected year
                 updateLabels(selectedYearIndex); 
-                window.selectedYear_global = selectedYear;  // Write global var
-                rotationAllowed = true; // Restart the globe rotation when another year is chosen
+                window.selectedYear_global = selectedYear;  // write global var
+                rotationAllowed = true; // restart the globe rotation when another year is chosen
             });
     
-        // Append the year labels
+        // append the year labels
         const labelsContainer = sliderContainer.select("#years-labels");
     
         labelsContainer.selectAll("div")
@@ -223,42 +233,52 @@ function render_globe(globe_data, circuit_geo_data) {
                 .classed("normal", (d, i) => i !== selectedYearIndex);
         }
     
-        // Initialize the labels with the first year highlighted
+        // initialize the labels with the first year highlighted
         updateLabels(0);
     }
 
+    /**
+     * Communicated with Flask App and requests the new filtered data for globe rendering
+     */
 
     function updateData(selectedYear) {
         return new Promise((resolve, reject) => {
             d3.json(`/update_circuit_geo_data/${selectedYear}`)
                 .then(function(circuit_geo_data) {
-                    // Call a function to update globe visualization with new data
+                    // call a function to update globe visualization with new data
                     updateGlobe(globe_data, circuit_geo_data);
-                    resolve(circuit_geo_data); // Resolve the promise with the updated data
+                    resolve(circuit_geo_data); // sesolve the promise with the updated data
                 })
                 .catch(function(error) {
                     console.error("Error updating data:", error);
-                    reject(error); // Reject the promise with the error
+                    reject(error); // reject the promise with the error
                 });
         });
     }
     
     initSlider();
     
+    /**
+     * Remove the old globe and draw a new one with updated data
+     */
+
     function updateGlobe(globe_data, circuit_geo_data) {
-        // remove existing elements from the svg
         d3.select('#globe').selectAll("*").remove();
-        // re-render the globe with the new data
         render_globe(globe_data, circuit_geo_data);
     }
     
-    // modified template: https://observablehq.com/@d3/world-tour?intent=fork
+    /**
+     * modified template: https://observablehq.com/@d3/world-tour?intent=fork
+     * Draws arcs on the globe and rotates it from location to location to show the event schedule
+     * The lines are interpolated between two locations using the Versor class.
+     */
+
     async function worldTour(circuit_geo_data, projection) {
         const tilt = 10; // different tilt for the rotation
         const duration = 1750; 
     
         for (let i = 0; i < circuit_geo_data.length - 1; i++) {
-            if (!rotationAllowed) break; // Check if animation should stop
+            if (!rotationAllowed) break; // check if animation should stop
     
             const p1 = [circuit_geo_data[i].long, circuit_geo_data[i].lat];
             const p2 = [circuit_geo_data[i + 1].long, circuit_geo_data[i + 1].lat];
@@ -272,21 +292,23 @@ function render_globe(globe_data, circuit_geo_data) {
             await d3.transition()
                 .duration(duration)
                 .tween("rotate", () => t => {
-                    if (!rotationAllowed) return; // Check if animation should stop
+                    if (!rotationAllowed) return; // check if animation should stop
                     projection.rotate(iv(t));
     
-                    // Redraw all paths with the updated projection
+                    // redraw all paths with the updated projection
                     svg.selectAll("path").attr("d", path);
-                    // Update pins' positions and visibility
                     updatePins(projection);
-                    // Render the lines
                     renderLines({ type: "LineString", coordinates: [p1, ip(t)] });
                 })
                 .end();
         }
     }
     
-    // Update pin positions and visibility
+    
+    /**
+     * Updated the visibility of location pins as the globe rotates 
+     */
+    
     function updatePins(projection) {
         svg.selectAll(".pin")
             .attr("transform", d => {
@@ -296,6 +318,12 @@ function render_globe(globe_data, circuit_geo_data) {
             });
     }
     
+
+    /**
+     * Draws arcs on the globe and rotates it from location to location to show the event schedule
+     */
+    
+
     function renderLines(arc) {
 
         svg.append('path')
@@ -307,7 +335,7 @@ function render_globe(globe_data, circuit_geo_data) {
         .style('opacity', 0.06);
     }
     
-    // Start the world tour
+    // start the world tour
     worldTour(circuit_geo_data, projection);
 }
 
